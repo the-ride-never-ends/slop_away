@@ -7,8 +7,10 @@ from collections.abc import Sequence
 from importlib.metadata import version
 from pathlib import Path
 
+from slop_away.baseline import Baseline, load_baseline, write_baseline
 from slop_away.checks import check_files, fix_files
 from slop_away.config import ConfigError, find_root, load_config
+from slop_away.output import render_findings
 from slop_away.packages import sync_packages
 
 LOGGER = logging.getLogger(__name__)
@@ -41,7 +43,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="Also apply fixes that can change meaning.",
     )
     check.add_argument(
-        "--output-format", choices=("text", "agent"), default="text"
+        "--write-baseline",
+        action="store_true",
+        help="Record current findings as the baseline.",
+    )
+    check.add_argument(
+        "--output-format",
+        choices=("text", "agent", "json", "github"),
+        default="text",
     )
     args = parser.parse_args(argv)
     if args.command is None:
@@ -52,23 +61,21 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "sync":
             sync_packages(config)
             return 0
+        baseline = (
+            Baseline() if args.write_baseline else load_baseline(config.root)
+        )
         paths = [str(Path.cwd() / path) for path in args.paths]
         findings = (
             fix_files(paths, config, args.unsafe_fixes)
             if args.fix or args.unsafe_fixes
             else check_files(paths, config)
         )
-        for finding in findings:
-            location = (
-                f"{finding.path.as_posix()}:{finding.line}:{finding.column}"
-            )
-            if args.output_format == "agent":
-                print(
-                    f"{finding.code} {location} {finding.message} "
-                    f"Fix: {finding.hint}"
-                )
-            else:
-                print(f"{location}: {finding.code} {finding.message}")
+        if args.write_baseline:
+            baseline = write_baseline(config.root, findings)
+        findings = [
+            finding for finding in findings if not baseline.matches(finding)
+        ]
+        print(render_findings(findings, args.output_format), end="")
         return int(bool(findings))
     except (ConfigError, OSError, UnicodeError, ValueError) as error:
         print(f"slop_away: {error}", file=sys.stderr)
