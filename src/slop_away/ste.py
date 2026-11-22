@@ -7,7 +7,13 @@ from pathlib import Path
 from slop_away.config import Config
 from slop_away.findings import Finding, make_finding
 from slop_away.markdown import Document
-from slop_away.parsing import PARSER, ParsedToken, Sentence
+from slop_away.parsing import (
+    PARSER,
+    SUBJECT,
+    ParsedToken,
+    Sentence,
+    is_imperative,
+)
 from slop_away.text import word_matches
 
 CONTRACTION = re.compile(
@@ -28,7 +34,6 @@ FIXED_FORMS = {
     "let's",
 }
 PASSIVE = {"nsubjpass", "csubjpass", "auxpass", "nsubj:pass", "aux:pass"}
-SUBJECT = {"nsubj", "nsubjpass", "csubj", "csubjpass", "nsubj:pass"}
 MESSAGES = {
     "STE003": ("Passive voice in the sentence.", "Use active voice."),
     "STE004": ("Contraction in prose.", "Write the words in full."),
@@ -41,31 +46,6 @@ MESSAGES = {
         "Divide the noun cluster or add a preposition.",
     ),
 }
-
-
-def _imperative(sentence: Sentence) -> bool:
-    """Check whether a sentence starts with an imperative verb.
-
-    Args:
-        sentence: The annotated sentence.
-
-    Returns:
-        True for an initial imperative verb without an explicit subject.
-    """
-    words = [token for token in sentence.tokens if token.pos != "PUNCT"]
-    if not words:
-        return False
-    first = words[0]
-    candidate = (
-        first.pos == "VERB"
-        and first.tag == "VB"
-        or first.text.casefold() == "do"
-        and first.pos == "AUX"
-    )
-    head = first.head if first.pos == "AUX" else first.index
-    return candidate and not any(
-        token.dependency in SUBJECT and token.head == head for token in words
-    )
 
 
 def _contractions(sentence: Sentence) -> Iterator[int]:
@@ -248,7 +228,7 @@ def scan_ste(
             )
         for sentence in sentences:
             words = len(word_matches(sentence.prose.text))
-            limit = 20 if block.procedure or _imperative(sentence) else 25
+            limit = 20 if block.procedure or is_imperative(sentence) else 25
             if config.enabled("STE001") and words > limit:
                 findings.append(
                     make_finding(

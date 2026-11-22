@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING, Protocol
 from slop_away.markdown import Projection
 from slop_away.text import word_matches
 
+SUBJECT = {"nsubj", "nsubjpass", "csubj", "csubjpass", "nsubj:pass"}
+
 if TYPE_CHECKING:
     from spacy.language import Language
 
@@ -33,6 +35,31 @@ class Sentence:
 
     prose: Projection
     tokens: tuple[ParsedToken, ...]
+
+
+def is_imperative(sentence: Sentence) -> bool:
+    """Check whether a sentence starts with an imperative verb.
+
+    Args:
+        sentence: The annotated sentence.
+
+    Returns:
+        True for an initial imperative verb without an explicit subject.
+    """
+    words = [token for token in sentence.tokens if token.pos != "PUNCT"]
+    if not words:
+        return False
+    first = words[0]
+    candidate = (
+        first.pos == "VERB"
+        and first.tag == "VB"
+        or first.text.casefold() == "do"
+        and first.pos == "AUX"
+    )
+    head = first.head if first.pos == "AUX" else first.index
+    return candidate and not any(
+        token.dependency in SUBJECT and token.head == head for token in words
+    )
 
 
 class Parser(Protocol):

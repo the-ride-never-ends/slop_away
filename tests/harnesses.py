@@ -91,7 +91,14 @@ class GitHarness(CliHarness):
             ["git", "config", "user.name", "Test Author"],
             ["git", "config", "user.email", "test@example.com"],
             ["git", "add", ".pre-commit-config.yaml"],
-            ["pre-commit", "install"],
+            [
+                "pre-commit",
+                "install",
+                "--hook-type",
+                "pre-commit",
+                "--hook-type",
+                "commit-msg",
+            ],
         ):
             self.run(arguments).check_returncode()
 

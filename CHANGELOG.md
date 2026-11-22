@@ -7,6 +7,44 @@ Headers will be commit hashes.
 ## [Unreleased]
 
 ### Added
+- Add the Slice 7 commit-message API, MSG001 to MSG004,
+  `check --commit-msg PATH`, and the `slop_away-msg` commit-msg hook.
+
+### Decisions
+- Use a default commit body budget of 200 words. Permit zero and allow
+  profiles to set `commit-body-budget`. Count visible body prose only.
+- Check the first nonempty message line as the subject. Count Unicode
+  characters after removing outer spaces. Point MSG001 at character 73,
+  MSG002 at the subject start, MSG003 at the final period, and MSG004
+  at the first word over budget. Reject an empty message as invalid input.
+- Use the same model-based imperative test for MSG002 and STE procedure
+  detection. Do not add a separate verb list or Conventional Commits rules.
+- Lowercase ASCII letters in the first word for grammar analysis. Preserve
+  source text and locations. This prevents capitalized command verbs such
+  as `Revert` from being read as names solely because of their case.
+- Ignore default Git comment lines and text after the standard Git scissors
+  line. Skip a final, blank-separated block made entirely of colon trailers
+  and their indented continuation lines. Do not read Git trailer settings.
+- Run package rules, INJ002 to INJ004, and VRB001 on message prose.
+  Do not run INJ001, STE, RDB, hedge, repetition, or Markdown word budgets.
+- Use `.git/COMMIT_EDITMSG` as the default logical message path. The CLI
+  uses this identity for profiles, per-file ignores, reports, and baselines,
+  including when Git supplies an external message file.
+- Commit-message mode accepts one explicit file and bypasses Markdown file
+  selection. Reject Markdown path arguments and fix flags in this mode.
+  Support report formats and baseline operations without rewriting messages.
+- No new dependencies are needed for this slice.
+
+### Validation
+- All 633 tests pass, including all Slice 7 feature scenarios.
+- Ruff, mypy, Poetry lock checks, and hook manifest checks pass.
+- Test subject limits, body budgets, trailer and editor exclusions, source
+  positions, rule selection, cached package rules, baselines, external
+  message files, blocked-network checks, and real Git hook diagnostics.
+
+## [229d9a20f0b8dbb853d5661628dacc42f5428b91]
+
+### Added
 - Add the Slice 6 baseline API, `--write-baseline`, per-file ignores,
   and JSON and GitHub annotation output.
 
