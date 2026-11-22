@@ -68,6 +68,9 @@ Done when: the Slice 3 scenarios in FEATURE_MAP.md pass.
   at `.slop_away/packages/` in the repo root.
 - Rule types read: existence, substitution, occurrence, sequence.
 - External rules keep their own names, such as `ai-tells.Dash`.
+- Rules from packages in `packages` run by default. An explicit `select`
+  replaces the default. `select` and `ignore` accept package names and rule
+  codes.
 - `check` exits 2 and names the package when a configured package is not synced.
 - Pre-commit hook: `slop_away-sync`.
 
@@ -86,6 +89,7 @@ Done when: the Slice 5 scenarios in FEATURE_MAP.md pass.
 
 - Baseline file `slop_away.baseline.json` at the repo root. Fingerprint:
   rule code, file path, hash of the normalized sentence or section text.
+  Each finding carries its fingerprint.
   `slop_away check --write-baseline` writes the file. `check` reads it when present.
 - `per-file-ignores` in the config. No inline suppression.
 - Output formats: `json` and `github`.

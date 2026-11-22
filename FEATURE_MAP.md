@@ -33,7 +33,9 @@ The api harness calls these callables. They are the package's public contract.
 | `Baseline.from_findings(findings)` | `Baseline` | |
 | `Baseline.matches(finding)` | `bool` | |
 
-`Finding` fields: `code`, `path`, `line`, `column`, `message`, `hint`.
+`Finding` fields: `code`, `path`, `line`, `column`, `message`, `hint`,
+`fingerprint`. The fingerprint is computed when the check runs, from the rule
+code, the file path, and the normalized sentence or section text.
 
 ## Rule codes
 
@@ -71,8 +73,8 @@ In pyproject.toml, the same keys go under `[tool.slop_away]`.
 | `include` | List of globs | `["**/*.md"]` |
 | `exclude` | List of paths or globs | `[".git", ".venv", "node_modules", "build", "dist"]` |
 | `extend-exclude` | List of paths or globs | `[]` |
-| `select` | List of codes or code prefixes | `["INJ", "VRB", "RDB", "STE", "MSG"]` |
-| `ignore` | List of codes or code prefixes | `[]` |
+| `select` | List of codes, code prefixes, or package names | `["INJ", "VRB", "RDB", "STE", "MSG"]` plus each package in `packages`. An explicit value replaces the default. |
+| `ignore` | List of codes, code prefixes, or package names | `[]` |
 | `instruction-files` | List of file names | `["AGENTS.md", "CLAUDE.md", "SKILL.md"]` |
 | `max-grade` | Number | `10` |
 | `word-budget` | Integer | None |
@@ -89,7 +91,7 @@ In pyproject.toml, the same keys go under `[tool.slop_away]`.
 | F01 | CLI basics | cli.feature | cli | 1 |
 | F02 | Config | config.feature | api | 1, 2, 6 |
 | F03 | File selection | selection.feature | api | 1 |
-| F04 | Markdown extraction | markdown.feature | api | 1 |
+| F04 | Markdown extraction | markdown.feature | api | 1, 2 |
 | F05 | Output formats | output.feature | cli | 1, 6 |
 | F06 | INJ rules | inj.feature | api | 1 |
 | F07 | VRB rules | vrb.feature | api | 2 |
@@ -153,7 +155,7 @@ In pyproject.toml, the same keys go under `[tool.slop_away]`.
 | @markdown_03 | Front matter produces no prose findings | 1 |
 | @markdown_04 | A bare URL produces no prose findings | 1 |
 | @markdown_05 | Table cells produce no prose findings | 1 |
-| @markdown_06 | An HTML comment is checked by INJ rules only | 1 |
+| @markdown_06 | An HTML comment is skipped by prose rules | 2 |
 | @markdown_07 | Link text is checked as prose | 1 |
 
 ### F05 Output formats
@@ -231,6 +233,8 @@ In pyproject.toml, the same keys go under `[tool.slop_away]`.
 | @ait_04 | A sequence rule flags its part-of-speech pattern | 4 |
 | @ait_05 | External findings use the package's rule name | 4 |
 | @ait_06 | A synced package that the config does not list does not run | 4 |
+| @ait_07 | An explicit `select` that leaves out the package excludes its rules | 4 |
+| @ait_08 | `ignore` removes package rules by package name or rule code | 4 |
 
 ### F12 Fixes
 

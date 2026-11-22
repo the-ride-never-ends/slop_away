@@ -17,14 +17,14 @@ refer to FEATURE_MAP.md.
 - [ ] T006 2026-11-21: CLI basics. Tags: @cli_02 @cli_03 @cli_04 @cli_05
 - [ ] T007 2026-11-21: Config loading, precedence, validation, `select`, and `ignore`. Tags: @config_01 @config_02 @config_03 @config_04 @config_05 @config_06 @config_07 @config_11
 - [ ] T008 2026-11-21: File selection. Tags: @selection_01 @selection_02 @selection_03 @selection_04 @selection_05 @selection_06
-- [ ] T009 2026-11-21: Markdown parsing and prose extraction. Tags: @markdown_01 @markdown_02 @markdown_03 @markdown_04 @markdown_05 @markdown_06 @markdown_07
+- [ ] T009 2026-11-21: Markdown parsing and prose extraction. Tags: @markdown_01 @markdown_02 @markdown_03 @markdown_04 @markdown_05 @markdown_07
 - [ ] T010 2026-11-21: `text` and `agent` output formats. Tags: @output_01 @output_02 @output_03
 - [ ] T011 2026-11-21: Rules INJ001 to INJ004. Tags: @inj_01 @inj_02 @inj_03 @inj_04 @inj_05 @inj_06 @inj_07 @inj_08
 - [ ] T012 2026-11-21: The git test harness and the `slop_away` pre-commit hook. Tags: @precommit_01 @precommit_02
 
 ## Slice 2: Verbosity and readability
 
-- [ ] T013 2026-11-21: VRB rules. Tags: @vrb_01 @vrb_02 @vrb_03 @vrb_04 @vrb_05 @vrb_06
+- [ ] T013 2026-11-21: VRB rules, and HTML comments skipped by prose rules. Tags: @vrb_01 @vrb_02 @vrb_03 @vrb_04 @vrb_05 @vrb_06 @markdown_06
 - [ ] T014 2026-11-21: RDB rule. Tags: @rdb_01 @rdb_02 @rdb_03 @rdb_04
 - [ ] T015 2026-11-21: Profiles. Tags: @config_08
 
@@ -38,7 +38,7 @@ refer to FEATURE_MAP.md.
 ## Slice 4: Vale-compatible rules
 
 - [ ] T020 2026-11-21: `slop_away sync` and the package cache. Tags: @sync_01 @sync_02 @sync_03
-- [ ] T021 2026-11-21: Load Vale YAML rules of types existence, substitution, occurrence, and sequence. Tags: @ait_01 @ait_02 @ait_03 @ait_04 @ait_05 @ait_06
+- [ ] T021 2026-11-21: Load Vale YAML rules of types existence, substitution, occurrence, and sequence. Tags: @ait_01 @ait_02 @ait_03 @ait_04 @ait_05 @ait_06 @ait_07 @ait_08
 - [ ] T022 2026-11-21: The `slop_away-sync` pre-commit hook. Tags: @precommit_03
 
 ## Slice 5: Fixes

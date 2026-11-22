@@ -58,7 +58,7 @@ check fails. The agent must revise the text before it can continue.
 | ID  | Decision | Why |
 |-----|----------|-----|
 | D16 | Ruff rule model: each rule has a code, rules are selected or ignored, and there are no severity levels. Any finding fails the run. | Agents ignore warnings. |
-| D17 | All native rule groups are on by default. External packages are off until the config lists them. | The tool exists to be strict with agents. This reverses ruff's small default set on purpose. |
+| D17 | All native rule groups are on by default. External packages are off until the config lists them in `packages`. Without an explicit `select`, the default is every native group plus every listed package. An explicit `select` replaces the default. `select` and `ignore` accept package names such as `ai-tells` and rule codes such as `ai-tells.Dash`. | The tool exists to be strict with agents. This reverses ruff's small default set on purpose. |
 | D18 | STE001 to STE007 form a subset of ASD-STE100: sentence length, paragraph length, active voice, no contractions, simple tenses, noun clusters of at most 3 nouns, and one term per meaning from a config glossary. Full ASD-STE100 is Phase 5, as an opt-in profile. | Full STE needs the official dictionary and reads stilted outside procedures. |
 | D19 | Numbered list steps and sentences that start with an imperative verb count as procedures. Procedures allow 20 words per sentence. Descriptions allow 25. | These are the STE limits. The tool needs a mechanical way to tell the two apart. |
 | D20 | RDB scores Flesch-Kincaid per h2 section. The default limit is grade 10, and each profile can change it. | A document score hides bad sections. A paragraph is too short to score reliably. |
@@ -81,7 +81,7 @@ check fails. The agent must revise the text before it can continue.
 |-----|----------|-----|
 | D28 | No inline suppression. Exceptions go only in `per-file-ignores` in the config. | Agents use any escape hatch. Config changes show up in review. |
 | D29 | CODEOWNERS with required human review covers the config and baseline files. | Works for every agent without detecting which commits came from an agent. |
-| D30 | Baseline file `slop_away.baseline.json` at the repo root. A finding's fingerprint is its rule code, its file path, and a hash of the normalized sentence or section text. `check --write-baseline` writes the file. `check` reads it when present. | Old findings do not block adoption. Moving lines does not break a match. Editing a sentence makes its findings new. |
+| D30 | Baseline file `slop_away.baseline.json` at the repo root. A finding's fingerprint is its rule code, its file path, and a hash of the normalized sentence or section text. `check --write-baseline` writes the file. `check` reads it when present. Each finding carries its fingerprint, computed when the check runs. | Old findings do not block adoption. Moving lines does not break a match. Editing a sentence makes its findings new. |
 
 ## Output
 

@@ -58,27 +58,27 @@ Feature: Config
   Scenario: select limits the run to the listed rules
     Given a file "slop_away.toml" containing:
       """
-      select = ["INJ"]
+      select = ["INJ002"]
       """
     And the config is loaded from the project root
     When check_text runs on "docs/guide.md" with the text:
       """
-      It is worth noting that the cache is cleared.
+      You must run the tests first.
       """
-    Then check_text returns no finding with code "VRB001"
+    Then check_text returns no finding with code "INJ001"
 
   @config_07
   Scenario: ignore removes the listed rules
     Given a file "slop_away.toml" containing:
       """
-      ignore = ["VRB001"]
+      ignore = ["INJ001"]
       """
     And the config is loaded from the project root
     When check_text runs on "docs/guide.md" with the text:
       """
-      It is worth noting that the cache is cleared.
+      You must run the tests first.
       """
-    Then check_text returns no finding with code "VRB001"
+    Then check_text returns no finding with code "INJ001"
 
   @config_08
   Scenario: A profile changes rule settings for files matching its glob
