@@ -136,6 +136,7 @@ def check_paths(config: Config, paths: str):
     return check_files(ast.literal_eval(paths), config)
 
 
+@then(parsers.parse('check_message returns a finding with code "{code}"'))
 @then(parsers.parse('check_text returns a finding with code "{code}"'))
 @then(parsers.parse('check_files returns a finding with code "{code}"'))
 def has_finding(findings: list[Finding], code: str):
@@ -144,6 +145,7 @@ def has_finding(findings: list[Finding], code: str):
     assert code in actual, f"Expected code {code}; got {actual}."
 
 
+@then(parsers.parse('check_message returns no finding with code "{code}"'))
 @then(parsers.parse('check_text returns no finding with code "{code}"'))
 def lacks_finding(findings: list[Finding], code: str):
     """GIVEN findings WHEN a rule does not match THEN omit its code."""
@@ -151,6 +153,7 @@ def lacks_finding(findings: list[Finding], code: str):
     assert code not in actual, f"Expected no code {code}; got {actual}."
 
 
+@then("check_message returns no findings")
 @then("check_text returns no findings")
 def no_findings(findings: list[Finding]):
     """GIVEN valid text WHEN checked THEN return no findings."""

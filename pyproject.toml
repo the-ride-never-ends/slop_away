@@ -33,6 +33,14 @@ pre-commit = ">=4,<5"
 testpaths = ["tests"]
 addopts = "--strict-config --strict-markers"
 markers = [
+    "msg_01: Commit-message feature scenario.",
+    "msg_02: Commit-message feature scenario.",
+    "msg_03: Commit-message feature scenario.",
+    "msg_04: Commit-message feature scenario.",
+    "msg_05: Commit-message feature scenario.",
+    "msg_06: Commit-message feature scenario.",
+    "precommit_04: Commit-message feature scenario.",
+
     "baseline_01: Adoption feature scenario.",
     "baseline_02: Adoption feature scenario.",
     "baseline_03: Adoption feature scenario.",

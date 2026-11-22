@@ -26,8 +26,6 @@ refer to FEATURE_MAP.md.
 
 ## Slice 7: Commit messages
 
-- [ ] T028 2026-11-21: MSG rules and `check --commit-msg PATH`. Tags: @msg_01 @msg_02 @msg_03 @msg_04 @msg_05 @msg_06
-- [ ] T029 2026-11-21: The `slop_away-msg` pre-commit hook at the commit-msg stage. Tags: @precommit_04
 
 ## Slice 8: Agent hooks and init
 
@@ -70,3 +68,5 @@ refer to FEATURE_MAP.md.
 - [x] T025 2026-11-21: Baseline file and `check --write-baseline`. Tags: @baseline_01 @baseline_02 @baseline_03 @baseline_04 @baseline_05
 - [x] T026 2026-11-21: `per-file-ignores`, with inline suppression comments having no effect. Tags: @config_09 @config_10
 - [x] T027 2026-11-21: `json` and `github` output formats. Tags: @output_04 @output_05
+- [x] T028 2026-11-21: MSG rules and `check --commit-msg PATH`. Tags: @msg_01 @msg_02 @msg_03 @msg_04 @msg_05 @msg_06
+- [x] T029 2026-11-21: The `slop_away-msg` pre-commit hook at the commit-msg stage. Tags: @precommit_04

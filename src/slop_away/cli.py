@@ -10,6 +10,7 @@ from pathlib import Path
 from slop_away.baseline import Baseline, load_baseline, write_baseline
 from slop_away.checks import check_files, fix_files
 from slop_away.config import ConfigError, find_root, load_config
+from slop_away.messages import check_message
 from slop_away.output import render_findings
 from slop_away.packages import sync_packages
 
@@ -35,7 +36,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     commands = parser.add_subparsers(dest="command")
     commands.add_parser("sync", help="Download configured rule packages.")
     check = commands.add_parser("check", help="Check Markdown files.")
-    check.add_argument("paths", nargs="*", default=["."])
+    check.add_argument("paths", nargs="*")
+    check.add_argument(
+        "--commit-msg", metavar="PATH", help="Check a commit-message file."
+    )
     check.add_argument("--fix", action="store_true", help="Apply safe fixes.")
     check.add_argument(
         "--unsafe-fixes",
@@ -61,15 +65,28 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "sync":
             sync_packages(config)
             return 0
+        if args.commit_msg is not None and (
+            args.paths or args.fix or args.unsafe_fixes
+        ):
+            raise ValueError(
+                "--commit-msg cannot use Markdown paths or fix flags."
+            )
         baseline = (
             Baseline() if args.write_baseline else load_baseline(config.root)
         )
-        paths = [str(Path.cwd() / path) for path in args.paths]
-        findings = (
-            fix_files(paths, config, args.unsafe_fixes)
-            if args.fix or args.unsafe_fixes
-            else check_files(paths, config)
-        )
+        if args.commit_msg is not None:
+            with Path(args.commit_msg).open(
+                encoding="utf-8", newline=""
+            ) as stream:
+                message = stream.read()
+            findings = check_message(message, config)
+        else:
+            paths = [str(Path.cwd() / path) for path in (args.paths or ["."])]
+            findings = (
+                fix_files(paths, config, args.unsafe_fixes)
+                if args.fix or args.unsafe_fixes
+                else check_files(paths, config)
+            )
         if args.write_baseline:
             baseline = write_baseline(config.root, findings)
         findings = [

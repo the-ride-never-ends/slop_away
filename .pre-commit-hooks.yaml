@@ -6,6 +6,13 @@
   pass_filenames: false
   always_run: true
   stages: [pre-commit]
+- id: slop_away-msg
+  name: slop_away message
+  description: Check the commit message.
+  entry: slop_away check --commit-msg
+  language: python
+  stages: [commit-msg]
+  always_run: true
 - id: slop_away
   name: slop_away
   description: Check Markdown files.

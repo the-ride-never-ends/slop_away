@@ -102,19 +102,20 @@ def _grade(value: object, key: str) -> None:
         raise ConfigError(f"{key}: expected a finite nonnegative number.")
 
 
-def _budget(value: object, key: str) -> None:
+def _budget(value: object, key: str, optional: bool = True) -> None:
     """Check a word budget.
 
     Args:
         value: The word budget, or None for no limit.
         key: The setting name.
+        optional: Permit None for no limit.
 
     Raises:
         ConfigError: The budget is invalid.
     """
-    if value is not None and (
-        isinstance(value, bool) or not isinstance(value, int) or value < 0
-    ):
+    if value is None and optional:
+        return
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise ConfigError(f"{key}: expected a nonnegative integer.")
 
 
@@ -130,7 +131,13 @@ def _profiles(value: Any, packages: set[str]) -> None:
     """
     if not isinstance(value, dict):
         raise ConfigError("profiles: expected a table.")
-    allowed = {"select", "ignore", "max-grade", "word-budget"}
+    allowed = {
+        "select",
+        "ignore",
+        "max-grade",
+        "word-budget",
+        "commit-body-budget",
+    }
     for pattern, settings in value.items():
         if not isinstance(pattern, str):
             raise ConfigError("profiles: expected string patterns.")
@@ -148,6 +155,12 @@ def _profiles(value: Any, packages: set[str]) -> None:
             _grade(settings["max-grade"], f"{key}.max-grade")
         if "word-budget" in settings:
             _budget(settings["word-budget"], f"{key}.word-budget")
+        if "commit-body-budget" in settings:
+            _budget(
+                settings["commit-body-budget"],
+                f"{key}.commit-body-budget",
+                False,
+            )
 
 
 def _glossary(value: Any) -> None:
@@ -234,6 +247,7 @@ class Config:
     )
     max_grade: int | float = 10
     word_budget: int | None = None
+    commit_body_budget: int = 200
     profiles: dict[str, dict[str, Any]] = field(default_factory=dict)
     per_file_ignores: dict[str, list[str]] = field(default_factory=dict)
     glossary: dict[str, list[str]] = field(default_factory=dict)
@@ -279,6 +293,7 @@ class Config:
             raise ConfigError("instruction-files: expected file names.")
         _grade(self.max_grade, "max-grade")
         _budget(self.word_budget, "word-budget")
+        _budget(self.commit_body_budget, "commit-body-budget", False)
         _profiles(self.profiles, names)
         _ignores(self.per_file_ignores, names)
         _glossary(self.glossary)
@@ -420,6 +435,7 @@ def load_config(root: str | Path) -> Config:
         "instruction-files",
         "max-grade",
         "word-budget",
+        "commit-body-budget",
         "profiles",
         "per-file-ignores",
         "glossary",

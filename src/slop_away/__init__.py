@@ -5,6 +5,7 @@ from slop_away.checks import check_files, check_text, fix_files
 from slop_away.config import Config, ConfigError, load_config
 from slop_away.findings import Finding
 from slop_away.fixes import apply_fixes
+from slop_away.messages import check_message
 from slop_away.output import render_findings
 from slop_away.package_types import PackageError
 from slop_away.packages import sync_packages
@@ -18,6 +19,7 @@ __all__ = [
     "PackageError",
     "apply_fixes",
     "check_files",
+    "check_message",
     "check_text",
     "fix_files",
     "load_baseline",

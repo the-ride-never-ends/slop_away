@@ -24,3 +24,11 @@ def test_precommit_02():
 )
 def test_precommit_03():
     """GIVEN the feature setup WHEN the action runs THEN check its result."""
+
+
+@scenario(
+    "features/precommit.feature",
+    "The slop_away-msg hook blocks a commit message with findings",
+)
+def test_precommit_04():
+    """GIVEN the feature setup WHEN the action runs THEN check its result."""
