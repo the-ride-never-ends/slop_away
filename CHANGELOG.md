@@ -6,6 +6,12 @@ Headers will be commit hashes.
 
 ## [Unreleased]
 
+### Changed
+- Pin generated checks to commit `091ebf22b9f7e479a1fd10ad0d2497b306500998`.
+  New project setups use the validated readability scorer.
+
+## [091ebf22b9f7e479a1fd10ad0d2497b306500998]
+
 ### Added
 - Add the Slice 9 corpus harness, property tests, differential tests,
   and repository self-check coverage.
