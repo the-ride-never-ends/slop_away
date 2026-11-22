@@ -1,36 +1,31 @@
-"""Test the version command."""
+"""Test the cli feature scenarios."""
 
-import re
-import shlex
-from subprocess import CompletedProcess
-
-from pytest_bdd import parsers, scenario, then, when
-
-from tests.harnesses import CliHarness
+from pytest_bdd import scenario
 
 
 @scenario("features/cli.feature", "--version prints the version")
-def test_version():
-    """GIVEN the package WHEN version is requested THEN show the version."""
+def test_cli_01():
+    """GIVEN the feature setup WHEN the action runs THEN check its result."""
 
 
-@when(parsers.parse('I run "{command}"'), target_fixture="result")
-def run_command(cli: CliHarness, command: str) -> CompletedProcess[str]:
-    """GIVEN a command WHEN it runs THEN collect its result."""
-    return cli.run(shlex.split(command))
+@scenario("features/cli.feature", "A clean file exits 0 with no output")
+def test_cli_02():
+    """GIVEN the feature setup WHEN the action runs THEN check its result."""
 
 
-@then(parsers.parse("the exit code is {expected:d}"))
-def check_exit(result: CompletedProcess[str], expected: int):
-    """GIVEN a result WHEN the command ends THEN check its exit code."""
-    actual = result.returncode
-    assert actual == expected, f"Expected exit code {expected}; got {actual}."
+@scenario("features/cli.feature", "A file with findings exits 1")
+def test_cli_03():
+    """GIVEN the feature setup WHEN the action runs THEN check its result."""
 
 
-@then(parsers.parse('stdout matches "{pattern}"'))
-def check_stdout(result: CompletedProcess[str], pattern: str):
-    """GIVEN output WHEN a pattern is specified THEN check the output."""
-    actual = result.stdout
-    assert re.fullmatch(pattern, actual.rstrip("\n")), (
-        f"Expected stdout to match {pattern!r}; got {actual!r}."
-    )
+@scenario("features/cli.feature", "An unknown option exits 2")
+def test_cli_04():
+    """GIVEN the feature setup WHEN the action runs THEN check its result."""
+
+
+@scenario(
+    "features/cli.feature",
+    "A path that does not exist exits 2 and names the path",
+)
+def test_cli_05():
+    """GIVEN the feature setup WHEN the action runs THEN check its result."""

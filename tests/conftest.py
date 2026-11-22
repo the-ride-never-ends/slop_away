@@ -6,6 +6,14 @@ import pytest
 
 from tests.harnesses import ApiHarness, CliHarness
 
+pytest_plugins = ["tests.steps"]
+
+
+@pytest.fixture(autouse=True)
+def project_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """GIVEN a test project WHEN a test runs THEN use its directory."""
+    monkeypatch.chdir(tmp_path)
+
 
 @pytest.fixture
 def api() -> ApiHarness:
@@ -27,4 +35,5 @@ def cli(tmp_path: Path) -> CliHarness:
     Returns:
         The command test tool.
     """
+    (tmp_path / ".git").mkdir()
     return CliHarness(tmp_path)

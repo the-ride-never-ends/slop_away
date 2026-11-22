@@ -1,8 +1,16 @@
 """Supply the slop_away command."""
 
+import logging
+import sys
 from argparse import ArgumentParser
 from collections.abc import Sequence
 from importlib.metadata import version
+from pathlib import Path
+
+from slop_away.checks import check_files
+from slop_away.config import ConfigError, find_root, load_config
+
+LOGGER = logging.getLogger(__name__)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -21,6 +29,35 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument(
         "--version", action="version", version=version("slop_away")
     )
-    parser.parse_args(argv)
-    parser.print_help()
-    return 0
+    commands = parser.add_subparsers(dest="command")
+    check = commands.add_parser("check", help="Check Markdown files.")
+    check.add_argument("paths", nargs="*", default=["."])
+    check.add_argument(
+        "--output-format", choices=("text", "agent"), default="text"
+    )
+    args = parser.parse_args(argv)
+    if args.command is None:
+        parser.print_help()
+        return 0
+    try:
+        config = load_config(find_root(Path.cwd()))
+        paths = [str(Path.cwd() / path) for path in args.paths]
+        findings = check_files(paths, config)
+        for finding in findings:
+            location = (
+                f"{finding.path.as_posix()}:{finding.line}:{finding.column}"
+            )
+            if args.output_format == "agent":
+                print(
+                    f"{finding.code} {location} {finding.message} "
+                    f"Fix: {finding.hint}"
+                )
+            else:
+                print(f"{location}: {finding.code} {finding.message}")
+        return int(bool(findings))
+    except (ConfigError, OSError, UnicodeError, ValueError) as error:
+        print(f"slop_away: {error}", file=sys.stderr)
+        return 2
+    except Exception:
+        LOGGER.exception("slop_away internal error.")
+        return 2
