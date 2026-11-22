@@ -8,6 +8,7 @@ dependencies = [
     "markdown-it-py[linkify]>=4,<5",
     "mdit-py-plugins>=0.5,<1",
     "pathspec>=1,<2",
+    "syllapy (>=0.7,<1)",
 ]
 
 [project.scripts]
@@ -28,6 +29,18 @@ pre-commit = ">=4,<5"
 testpaths = ["tests"]
 addopts = "--strict-config --strict-markers"
 markers = [
+    "vrb_01: vrb feature scenario.",
+    "vrb_02: vrb feature scenario.",
+    "vrb_03: vrb feature scenario.",
+    "vrb_04: vrb feature scenario.",
+    "vrb_05: vrb feature scenario.",
+    "vrb_06: vrb feature scenario.",
+    "rdb_01: rdb feature scenario.",
+    "rdb_02: rdb feature scenario.",
+    "rdb_03: rdb feature scenario.",
+    "rdb_04: rdb feature scenario.",
+    "config_08: config feature scenario.",
+    "markdown_06: markdown feature scenario.",
     "cli_01: cli feature scenario.",
     "cli_02: cli feature scenario.",
     "cli_03: cli feature scenario.",

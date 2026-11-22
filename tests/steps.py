@@ -13,6 +13,7 @@ from slop_away import (
     Config,
     ConfigError,
     Finding,
+    check_files,
     check_text,
     load_config,
     select_files,
@@ -118,7 +119,25 @@ def check_character(config: Config, path: str, codepoint: str):
     return check_text(chr(int(codepoint, 16)), path, config)
 
 
+@when(
+    parsers.parse(
+        'check_text runs on "{path}" with a text of {count:d} words'
+    ),
+    target_fixture="findings",
+)
+def check_words(config: Config, path: str, count: int):
+    """GIVEN a word count WHEN checked THEN return the findings."""
+    return check_text(" ".join(["word"] * count), path, config)
+
+
+@when(parsers.parse("check_files runs on {paths}"), target_fixture="findings")
+def check_paths(config: Config, paths: str):
+    """GIVEN document paths WHEN checked THEN return all findings."""
+    return check_files(ast.literal_eval(paths), config)
+
+
 @then(parsers.parse('check_text returns a finding with code "{code}"'))
+@then(parsers.parse('check_files returns a finding with code "{code}"'))
 def has_finding(findings: list[Finding], code: str):
     """GIVEN findings WHEN a rule matches THEN include its code."""
     actual = [finding.code for finding in findings]

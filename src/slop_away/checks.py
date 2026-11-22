@@ -6,7 +6,35 @@ from pathlib import Path
 from slop_away.config import Config
 from slop_away.findings import Finding
 from slop_away.injection import scan_injection
+from slop_away.markdown import parse_document
+from slop_away.readability import scan_readability
 from slop_away.selection import select_files
+from slop_away.verbosity import scan_verbosity
+
+
+def _check(
+    text: str, path: Path, config: Config, seen: dict[str, Path]
+) -> list[Finding]:
+    """Check a document with settings for its path.
+
+    Args:
+        text: The Markdown source.
+        path: The source path.
+        config: The project settings.
+        seen: Sentences from files checked in this run.
+
+    Returns:
+        Findings in source order.
+    """
+    settings = config.for_path(path)
+    document = parse_document(text)
+    findings = scan_injection(text, path, settings, document)
+    if path.name not in settings.instruction_files:
+        findings.extend(scan_verbosity(text, path, settings, document, seen))
+        findings.extend(scan_readability(text, path, settings, document))
+    return sorted(
+        findings, key=lambda item: (item.line, item.column, item.code)
+    )
 
 
 def check_text(text: str, path: str | Path, config: Config) -> list[Finding]:
@@ -20,7 +48,7 @@ def check_text(text: str, path: str | Path, config: Config) -> list[Finding]:
     Returns:
         Findings in source order.
     """
-    return scan_injection(text, Path(path), config)
+    return _check(text, Path(path), config, {})
 
 
 def check_files(paths: Sequence[str | Path], config: Config) -> list[Finding]:
@@ -39,12 +67,14 @@ def check_files(paths: Sequence[str | Path], config: Config) -> list[Finding]:
         ValueError: An input is outside the project.
     """
     findings = []
+    seen: dict[str, Path] = {}
     for path in select_files(paths, config):
         findings.extend(
-            check_text(
+            _check(
                 path.read_text(encoding="utf-8"),
                 path.relative_to(config.root),
                 config,
+                seen,
             )
         )
     return findings

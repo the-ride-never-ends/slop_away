@@ -11,9 +11,6 @@ refer to FEATURE_MAP.md.
 
 ## Slice 2: Verbosity and readability
 
-- [ ] T013 2026-11-21: VRB rules, and HTML comments skipped by prose rules. Tags: @vrb_01 @vrb_02 @vrb_03 @vrb_04 @vrb_05 @vrb_06 @markdown_06
-- [ ] T014 2026-11-21: RDB rule. Tags: @rdb_01 @rdb_02 @rdb_03 @rdb_04
-- [ ] T015 2026-11-21: Profiles. Tags: @config_08
 
 ## Slice 3: STE subset
 
@@ -70,3 +67,6 @@ refer to FEATURE_MAP.md.
 - [x] T010 2026-11-21: `text` and `agent` output formats. Tags: @output_01 @output_02 @output_03
 - [x] T011 2026-11-21: Rules INJ001 to INJ004. Tags: @inj_01 @inj_02 @inj_03 @inj_04 @inj_05 @inj_06 @inj_07 @inj_08
 - [x] T012 2026-11-21: The git test harness and the `slop_away` pre-commit hook. Tags: @precommit_01 @precommit_02
+- [x] T013 2026-11-21: VRB rules, and HTML comments skipped by prose rules. Tags: @vrb_01 @vrb_02 @vrb_03 @vrb_04 @vrb_05 @vrb_06 @markdown_06
+- [x] T014 2026-11-21: RDB rule. Tags: @rdb_01 @rdb_02 @rdb_03 @rdb_04
+- [x] T015 2026-11-21: Profiles. Tags: @config_08

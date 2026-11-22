@@ -7,6 +7,43 @@ Headers will be commit hashes.
 ## [Unreleased]
 
 ### Added
+- Add the Slice 2 phrase, word budget, repeated sentence, and readability
+  checks. Add rule settings for files that match a profile glob.
+
+### Decisions
+- Apply matching profiles in config order. The last value for a setting
+  wins. A profile replaces the global value for that setting.
+- Match profile globs against project-relative paths. Require a finite
+  grade limit of zero or more and an integer word budget of zero or more.
+- Count visible prose words for file budgets. Count headings and lists,
+  but omit code, front matter, tables, URLs, and HTML comments.
+- Count contractions, words with hyphens, and decimal numbers as single
+  words. Do not count numbers that have no letters in readability scores.
+- Split sentences at terminal punctuation or the end of a prose block.
+  Keep common English abbreviations and initialisms within a sentence.
+- Start with the three filler phrases and three hedge phrases in the
+  VRB feature examples. Match case changes and text on multiple lines.
+- Report repeated sentences after their first occurrence. Compare case
+  and whitespace only, and require at least eight words. For checks
+  across files, only files with VRB005 enabled take part. Sort input
+  paths before checking them.
+- Score paragraph prose within each h2 section. End a section at the next
+  h1 or h2 heading. Do not score headings, lists, or empty sections.
+- Use syllapy for offline English syllable counts. Compare unrounded
+  Flesch-Kincaid grades with the configured limit.
+
+### Validation
+- All 219 tests pass on Python 3.14.4, including every Slice 2 scenario.
+- Tests check exact limits, profile replacement and order, excluded
+  content, section boundaries, source locations, and repeated sentences
+  across selected files.
+- Pre-commit, Python style and type checks, and Poetry validation pass.
+  The wheel and source archive build.
+- Move T013 to T015 to Done. Keep the protected document set unchanged.
+
+## [000c2f054bf04a7f01a981b0f3b91b3f0d12f7b6]
+
+### Added
 - Add the Slice 1 public API, config loading, file selection, Markdown
   extraction, injection checks, and text and agent output.
 - Add feature tests and a Git test tool that checks real commits with
