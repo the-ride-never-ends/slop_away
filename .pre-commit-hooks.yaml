@@ -1,0 +1,7 @@
+- id: slop_away
+  name: slop_away
+  description: Check Markdown files.
+  entry: slop_away check
+  language: python
+  types: [markdown]
+  stages: [pre-commit]

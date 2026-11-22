@@ -1,0 +1,21 @@
+repos:
+  - repo: local
+    hooks:
+      - id: poetry-check
+        name: Check project metadata and lock file
+        entry: poetry check --lock
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: hook-manifest
+        name: Check the hook manifest
+        entry: poetry run pre-commit validate-manifest .pre-commit-hooks.yaml
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: pytest
+        name: Run tests
+        entry: poetry run pytest
+        language: system
+        pass_filenames: false
+        always_run: true
