@@ -6,12 +6,6 @@ refer to FEATURE_MAP.md.
 
 ## Slice 0: Project skeleton
 
-- [ ] T001 2026-11-21: Create the Poetry project: Python 3.14, package `slop_away`, console command `slop_away`. Tags: @cli_01
-- [ ] T002 2026-11-21: Add dev dependencies pytest, pytest-bdd, Hypothesis, and pytest-cov. Confirm pytest-bdd runs on Python 3.14. Tags: none
-- [ ] T003 2026-11-21: Create `tests/features/`, `tests/properties/`, `tests/differential/`, and the corpus folders `bad/`, `fixed/`, `good/`, with a format for each bad document's expected codes. Tags: none
-- [ ] T004 2026-11-21: Write the api and cli test harnesses. Tags: none
-- [ ] T005 2026-11-21: Add `.pre-commit-hooks.yaml` and the CI workflow that runs `pre-commit run --all-files`. Tags: none
-
 ## Slice 1: Injection checks on Markdown
 
 - [ ] T006 2026-11-21: CLI basics. Tags: @cli_02 @cli_03 @cli_04 @cli_05
@@ -70,3 +64,9 @@ refer to FEATURE_MAP.md.
 - [ ] T035 2026-11-21: Add the owner's bad docs to the corpus. Auto-fix them into `fixed/` for the owner to clean by hand. Tags: @corpus_01 @corpus_02
 
 ## Done
+
+- [x] T001 2026-11-21: Create the Poetry project: Python 3.14, package `slop_away`, console command `slop_away`. Tags: @cli_01
+- [x] T002 2026-11-21: Add dev dependencies pytest, pytest-bdd, Hypothesis, and pytest-cov. Confirm pytest-bdd runs on Python 3.14. Tags: none
+- [x] T003 2026-11-21: Create `tests/features/`, `tests/properties/`, `tests/differential/`, and the corpus folders `bad/`, `fixed/`, `good/`, with a format for each bad document's expected codes. Tags: none
+- [x] T004 2026-11-21: Write the api and cli test harnesses. Tags: none
+- [x] T005 2026-11-21: Add `.pre-commit-hooks.yaml` and the CI workflow that runs `pre-commit run --all-files`. Tags: none

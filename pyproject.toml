@@ -1,0 +1,32 @@
+[project]
+name = "slop_away"
+version = "0.1.0"
+description = "Check documentation and commit messages."
+requires-python = ">=3.14"
+license = "MIT"
+
+[project.scripts]
+slop_away = "slop_away.cli:main"
+
+[tool.poetry]
+packages = [{ include = "slop_away", from = "src" }]
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=9,<10"
+pytest-bdd = ">=8.1,<10"
+hypothesis = ">=6,<7"
+pytest-cov = ">=7,<8"
+pre-commit = ">=4,<5"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-config --strict-markers"
+markers = ["cli_01: Print the package version."]
+
+[tool.coverage.run]
+source = ["slop_away"]
+branch = true
+
+[build-system]
+requires = ["poetry-core>=2.2,<3"]
+build-backend = "poetry.core.masonry.api"
