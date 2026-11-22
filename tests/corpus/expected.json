@@ -1,1 +1,37 @@
-{}
+{
+  "bad/AGENTS.md": [
+    "INJ003"
+  ],
+  "bad/CHANGELOG.md": [
+    "INJ001",
+    "STE001",
+    "STE003",
+    "STE006",
+    "VRB004"
+  ],
+  "bad/FEATURE_MAP.md": [
+    "STE003"
+  ],
+  "bad/MVP.md": [
+    "RDB001",
+    "STE003"
+  ],
+  "bad/ROADMAP.md": [
+    "STE003"
+  ],
+  "bad/TODO.md": [
+    "STE006"
+  ],
+  "bad/guide.md": [
+    "INJ001",
+    "STE003",
+    "STE004",
+    "VRB001"
+  ],
+  "bad/readability.md": [
+    "RDB001"
+  ],
+  "bad/vale.md": [
+    "INJ001"
+  ]
+}

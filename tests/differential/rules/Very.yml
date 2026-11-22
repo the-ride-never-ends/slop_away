@@ -1,0 +1,5 @@
+extends: occurrence
+message: Too many uses of very.
+scope: sentence
+max: 1
+token: very

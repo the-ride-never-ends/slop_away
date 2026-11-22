@@ -1,0 +1,446 @@
+{
+  "AGENTS.md": [
+    {
+      "code": "INJ003",
+      "column": 1,
+      "hint": "Add a status or a date to the action item.",
+      "line": 3
+    }
+  ],
+  "CHANGELOG.md": [
+    {
+      "code": "STE003",
+      "column": 45,
+      "hint": "Use active voice.",
+      "line": 3
+    },
+    {
+      "code": "STE003",
+      "column": 17,
+      "hint": "Use active voice.",
+      "line": 5
+    },
+    {
+      "code": "STE003",
+      "column": 63,
+      "hint": "Use active voice.",
+      "line": 15
+    },
+    {
+      "code": "STE003",
+      "column": 67,
+      "hint": "Use active voice.",
+      "line": 16
+    },
+    {
+      "code": "STE003",
+      "column": 56,
+      "hint": "Use active voice.",
+      "line": 19
+    },
+    {
+      "code": "STE003",
+      "column": 3,
+      "hint": "Use active voice.",
+      "line": 21
+    },
+    {
+      "code": "INJ001",
+      "column": 32,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 23
+    },
+    {
+      "code": "STE006",
+      "column": 33,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 48
+    },
+    {
+      "code": "STE003",
+      "column": 66,
+      "hint": "Use active voice.",
+      "line": 49
+    },
+    {
+      "code": "INJ001",
+      "column": 14,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 66
+    },
+    {
+      "code": "STE003",
+      "column": 26,
+      "hint": "Use active voice.",
+      "line": 69
+    },
+    {
+      "code": "STE006",
+      "column": 3,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 70
+    },
+    {
+      "code": "INJ001",
+      "column": 42,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 72
+    },
+    {
+      "code": "INJ001",
+      "column": 3,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 74
+    },
+    {
+      "code": "STE003",
+      "column": 27,
+      "hint": "Use active voice.",
+      "line": 81
+    },
+    {
+      "code": "STE001",
+      "column": 3,
+      "hint": "Divide the sentence into shorter sentences.",
+      "line": 86
+    },
+    {
+      "code": "STE006",
+      "column": 64,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 115
+    },
+    {
+      "code": "VRB004",
+      "column": 3,
+      "hint": "Remove the repeated sentence.",
+      "line": 117
+    },
+    {
+      "code": "STE003",
+      "column": 27,
+      "hint": "Use active voice.",
+      "line": 117
+    },
+    {
+      "code": "VRB004",
+      "column": 3,
+      "hint": "Remove the repeated sentence.",
+      "line": 121
+    },
+    {
+      "code": "STE003",
+      "column": 55,
+      "hint": "Use active voice.",
+      "line": 140
+    },
+    {
+      "code": "INJ001",
+      "column": 43,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 145
+    },
+    {
+      "code": "INJ001",
+      "column": 64,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 152
+    },
+    {
+      "code": "INJ001",
+      "column": 27,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 157
+    },
+    {
+      "code": "VRB004",
+      "column": 3,
+      "hint": "Remove the repeated sentence.",
+      "line": 164
+    },
+    {
+      "code": "STE003",
+      "column": 27,
+      "hint": "Use active voice.",
+      "line": 164
+    },
+    {
+      "code": "VRB004",
+      "column": 3,
+      "hint": "Remove the repeated sentence.",
+      "line": 168
+    },
+    {
+      "code": "INJ001",
+      "column": 49,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 184
+    },
+    {
+      "code": "INJ001",
+      "column": 61,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 192
+    },
+    {
+      "code": "STE003",
+      "column": 20,
+      "hint": "Use active voice.",
+      "line": 195
+    },
+    {
+      "code": "INJ001",
+      "column": 16,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 198
+    },
+    {
+      "code": "STE001",
+      "column": 3,
+      "hint": "Divide the sentence into shorter sentences.",
+      "line": 199
+    },
+    {
+      "code": "STE006",
+      "column": 37,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 200
+    },
+    {
+      "code": "VRB004",
+      "column": 3,
+      "hint": "Remove the repeated sentence.",
+      "line": 218
+    },
+    {
+      "code": "INJ001",
+      "column": 3,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 243
+    },
+    {
+      "code": "STE003",
+      "column": 62,
+      "hint": "Use active voice.",
+      "line": 259
+    },
+    {
+      "code": "INJ001",
+      "column": 10,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 278
+    },
+    {
+      "code": "INJ001",
+      "column": 21,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 288
+    },
+    {
+      "code": "VRB004",
+      "column": 3,
+      "hint": "Remove the repeated sentence.",
+      "line": 297
+    },
+    {
+      "code": "STE006",
+      "column": 3,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 323
+    },
+    {
+      "code": "INJ001",
+      "column": 24,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 324
+    },
+    {
+      "code": "STE001",
+      "column": 3,
+      "hint": "Divide the sentence into shorter sentences.",
+      "line": 325
+    },
+    {
+      "code": "INJ001",
+      "column": 49,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 356
+    },
+    {
+      "code": "STE003",
+      "column": 69,
+      "hint": "Use active voice.",
+      "line": 359
+    },
+    {
+      "code": "STE006",
+      "column": 7,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 364
+    },
+    {
+      "code": "STE006",
+      "column": 32,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 365
+    }
+  ],
+  "FEATURE_MAP.md": [
+    {
+      "code": "STE003",
+      "column": 19,
+      "hint": "Use active voice.",
+      "line": 7
+    },
+    {
+      "code": "STE003",
+      "column": 35,
+      "hint": "Use active voice.",
+      "line": 37
+    }
+  ],
+  "MVP.md": [
+    {
+      "code": "STE003",
+      "column": 10,
+      "hint": "Use active voice.",
+      "line": 6
+    },
+    {
+      "code": "STE003",
+      "column": 18,
+      "hint": "Use active voice.",
+      "line": 60
+    },
+    {
+      "code": "STE003",
+      "column": 74,
+      "hint": "Use active voice.",
+      "line": 74
+    },
+    {
+      "code": "STE003",
+      "column": 23,
+      "hint": "Use active voice.",
+      "line": 103
+    },
+    {
+      "code": "RDB001",
+      "column": 1,
+      "hint": "Use shorter sentences and simpler words.",
+      "line": 131
+    }
+  ],
+  "ROADMAP.md": [
+    {
+      "code": "STE003",
+      "column": 40,
+      "hint": "Use active voice.",
+      "line": 4
+    },
+    {
+      "code": "STE003",
+      "column": 72,
+      "hint": "Use active voice.",
+      "line": 11
+    },
+    {
+      "code": "STE003",
+      "column": 20,
+      "hint": "Use active voice.",
+      "line": 18
+    }
+  ],
+  "TODO.md": [
+    {
+      "code": "STE006",
+      "column": 115,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 35
+    },
+    {
+      "code": "STE006",
+      "column": 105,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 48
+    },
+    {
+      "code": "STE006",
+      "column": 54,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 52
+    },
+    {
+      "code": "STE006",
+      "column": 111,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 62
+    },
+    {
+      "code": "STE006",
+      "column": 55,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 64
+    },
+    {
+      "code": "STE006",
+      "column": 74,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 66
+    },
+    {
+      "code": "STE006",
+      "column": 87,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 69
+    },
+    {
+      "code": "STE006",
+      "column": 117,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 71
+    },
+    {
+      "code": "STE006",
+      "column": 48,
+      "hint": "Divide the noun cluster or add a preposition.",
+      "line": 72
+    }
+  ],
+  "guide.md": [
+    {
+      "code": "INJ001",
+      "column": 1,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 5
+    },
+    {
+      "code": "VRB001",
+      "column": 1,
+      "hint": "Remove the filler phrase.",
+      "line": 7
+    },
+    {
+      "code": "STE003",
+      "column": 37,
+      "hint": "Use active voice.",
+      "line": 7
+    }
+  ],
+  "readability.md": [
+    {
+      "code": "RDB001",
+      "column": 1,
+      "hint": "Use shorter sentences and simpler words.",
+      "line": 3
+    }
+  ],
+  "vale.md": [
+    {
+      "code": "INJ001",
+      "column": 1,
+      "hint": "Remove the directive or move it to an instruction file.",
+      "line": 3
+    }
+  ]
+}

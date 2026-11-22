@@ -8,11 +8,12 @@ dependencies = [
     "markdown-it-py[linkify]>=4,<5",
     "mdit-py-plugins>=0.5,<1",
     "pathspec>=1,<2",
-    "syllapy (>=0.7,<1)",
     "spacy (>=3.8.16,<3.9)",
     "en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",
     "pyyaml (>=6,<7)",
     "regex (>=2025,<2027)",
+    "cmudict (>=1,<2)",
+    "pyphen (>=0.18,<0.19)",
 ]
 
 [project.scripts]
@@ -27,12 +28,19 @@ pytest-bdd = ">=8.1,<10"
 hypothesis = ">=6,<7"
 pytest-cov = ">=7,<8"
 pre-commit = ">=4,<5"
+textstat = ">=0.7,<0.8"
 
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-config --strict-markers"
 markers = [
+    "corpus_01: Corpus feature scenario.",
+    "corpus_02: Corpus feature scenario.",
+    "corpus_03: Corpus feature scenario.",
+    "corpus_04: Corpus feature scenario.",
+    "corpus_05: Corpus feature scenario.",
+
     "hooks_01: Project setup feature scenario.",
     "hooks_02: Project setup feature scenario.",
     "hooks_03: Project setup feature scenario.",

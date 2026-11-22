@@ -32,10 +32,7 @@ refer to FEATURE_MAP.md.
 
 ## Slice 9: Validation
 
-- [ ] T032 2026-11-21: The corpus test harness and corpus suite, seeded with the slop_away repo's own docs. Tags: @corpus_01 @corpus_02 @corpus_03 @corpus_04 @corpus_05
-- [ ] T033 2026-11-21: Property tests P1 to P5. Tags: none
-- [ ] T034 2026-11-21: Differential tests X1 and X2. Tags: none
-- [ ] T035 2026-11-21: Add the owner's bad docs to the corpus. Auto-fix them into `fixed/` for the owner to clean by hand. Tags: @corpus_01 @corpus_02
+- [ ] T035 2026-11-21: Add the owner's bad docs to the corpus. Auto-fix them into `fixed/` for the owner to clean by hand. Tags: @corpus_01 @corpus_02 Status: blocked, await owner review.
 
 ## Done
 
@@ -70,3 +67,6 @@ refer to FEATURE_MAP.md.
 - [x] T029 2026-11-21: The `slop_away-msg` pre-commit hook at the commit-msg stage. Tags: @precommit_04
 - [x] T030 2026-11-21: The hook test harness and the bash hook scripts for PostToolUse, Stop, and PreToolUse. Tags: @hooks_01 @hooks_02 @hooks_03 @hooks_04 @hooks_05 @hooks_06 @hooks_07
 - [x] T031 2026-11-21: `slop_away init`. Tags: @init_01 @init_02 @init_03 @init_04 @init_05 @init_06 @init_07
+- [x] T032 2026-11-21: The corpus test harness and corpus suite, seeded with the slop_away repo's own docs. Tags: @corpus_01 @corpus_02 @corpus_03 @corpus_04 @corpus_05
+- [x] T033 2026-11-21: Property tests P1 to P5. Tags: none
+- [x] T034 2026-11-21: Differential tests X1 and X2. Tags: none

@@ -11,6 +11,7 @@ from slop_away.messages import check_message
 from slop_away.output import render_findings
 from slop_away.package_types import PackageError
 from slop_away.packages import sync_packages
+from slop_away.readability import SectionGrade, grade_sections
 from slop_away.selection import select_files
 
 __all__ = [
@@ -19,11 +20,13 @@ __all__ = [
     "ConfigError",
     "Finding",
     "PackageError",
+    "SectionGrade",
     "apply_fixes",
     "check_files",
     "check_message",
     "check_text",
     "fix_files",
+    "grade_sections",
     "guard_command",
     "init_project",
     "load_baseline",

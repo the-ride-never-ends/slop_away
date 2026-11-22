@@ -1,15 +1,18 @@
 """Check section readability."""
 
+import re
 from collections.abc import Iterator
+from dataclasses import dataclass
 from decimal import Decimal
+from functools import cache
 from pathlib import Path
 
-from syllapy import count  # type: ignore[import-untyped]
+import cmudict
+import pyphen  # type: ignore[import-untyped]
 
 from slop_away.config import Config
 from slop_away.findings import Finding, make_finding
-from slop_away.markdown import Block, Document
-from slop_away.text import split_sentences, word_matches
+from slop_away.markdown import Block, Document, parse_document
 
 
 def _sections(document: Document) -> Iterator[tuple[Block, list[Block]]]:
@@ -35,6 +38,118 @@ def _sections(document: Document) -> Iterator[tuple[Block, list[Block]]]:
         yield heading, paragraphs
 
 
+@dataclass(frozen=True)
+class SectionGrade:
+    """Hold a section heading, prose, and Flesch-Kincaid grade."""
+
+    heading: str
+    prose: str
+    line: int
+    grade: Decimal
+
+
+def _words(text: str) -> list[str]:
+    """Get alphabetic scoring words.
+
+    Args:
+        text: The visible section prose.
+
+    Returns:
+        Words without punctuation or numeric-only tokens.
+    """
+    text = re.sub(r"(?<!\w)'|'(?!\w)", "", text)
+    text = re.sub(r"[^\w\s']", "", text)
+    return [
+        word for word in text.split() if any(char.isalpha() for char in word)
+    ]
+
+
+@cache
+def _dictionary() -> dict[str, list[list[str]]]:
+    """Get the installed English pronunciation dictionary.
+
+    Returns:
+        Words and their phoneme sequences.
+    """
+    return cmudict.dict()
+
+
+@cache
+def _hyphenator() -> pyphen.Pyphen:
+    """Get the English pattern data for unknown words.
+
+    Returns:
+        The English hyphenation patterns.
+    """
+    return pyphen.Pyphen(lang="en_US")
+
+
+@cache
+def _syllables(word: str) -> int:
+    """Count pronunciation syllables or unknown-word segments.
+
+    Args:
+        word: The scoring word in lowercase.
+
+    Returns:
+        The syllable count.
+    """
+    pronunciations = _dictionary().get(word)
+    if pronunciations:
+        return sum(phoneme[-1].isdigit() for phoneme in pronunciations[0])
+    return len(_hyphenator().positions(word)) + 1
+
+
+def _graded(
+    document: Document,
+) -> Iterator[tuple[Block, list[Block], str, Decimal]]:
+    """Score eligible section prose.
+
+    Args:
+        document: The parsed document.
+
+    Yields:
+        The heading, paragraphs, prose, and grade.
+    """
+    for heading, paragraphs in _sections(document):
+        prose = "\n\n".join(block.prose.text.strip() for block in paragraphs)
+        prose = re.sub(r"(?<!\w)\d+(?:[.,]\d+)*(?!\w)", "", prose).replace(
+            "’", "'"
+        )
+        words = _words(prose)
+        if not words:
+            continue
+        regions = re.findall(r"\b[^.!?]+[.!?]*", prose)
+        sentences = max(1, sum(len(_words(region)) > 2 for region in regions))
+        syllables = sum(_syllables(word.casefold()) for word in words)
+        grade = (
+            Decimal("0.39") * len(words) / sentences
+            + Decimal("11.8") * syllables / len(words)
+            - Decimal("15.59")
+        )
+        yield heading, paragraphs, prose, grade
+
+
+def grade_sections(text: str) -> list[SectionGrade]:
+    """Get readability grades for eligible h2 sections.
+
+    Args:
+        text: The Markdown source.
+
+    Returns:
+        Section grades in source order, without a grade limit.
+    """
+    return [
+        SectionGrade(
+            heading.prose.text.strip(),
+            prose,
+            len(re.findall(r"\r\n|\r|\n", text[: heading.offset])) + 1,
+            grade,
+        )
+        for heading, _, prose, grade in _graded(parse_document(text))
+    ]
+
+
 def scan_readability(
     text: str, path: Path, config: Config, document: Document
 ) -> list[Finding]:
@@ -52,26 +167,7 @@ def scan_readability(
     findings: list[Finding] = []
     if not config.enabled("RDB001"):
         return findings
-    for heading, paragraphs in _sections(document):
-        sentences = [
-            sentence
-            for block in paragraphs
-            for sentence in split_sentences(block.prose)
-            if any(char.isalpha() for char in sentence.text)
-        ]
-        syllables = [
-            count(match.group().casefold())
-            for sentence in sentences
-            for match in word_matches(sentence.text)
-            if any(char.isalpha() for char in match.group())
-        ]
-        if not syllables:
-            continue
-        grade = (
-            Decimal("0.39") * len(syllables) / len(sentences)
-            + Decimal("11.8") * sum(syllables) / len(syllables)
-            - Decimal("15.59")
-        )
+    for heading, paragraphs, _, grade in _graded(document):
         if grade > Decimal(str(config.max_grade)):
             context = "\n".join(
                 block.prose.text for block in (heading, *paragraphs)
