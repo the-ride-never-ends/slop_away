@@ -11,6 +11,8 @@ dependencies = [
     "syllapy (>=0.7,<1)",
     "spacy (>=3.8.16,<3.9)",
     "en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",
+    "pyyaml (>=6,<7)",
+    "regex (>=2025,<2027)",
 ]
 
 [project.scripts]
@@ -31,6 +33,19 @@ pre-commit = ">=4,<5"
 testpaths = ["tests"]
 addopts = "--strict-config --strict-markers"
 markers = [
+    "sync_01: Package feature scenario.",
+    "sync_02: Package feature scenario.",
+    "sync_03: Package feature scenario.",
+    "ait_01: Package feature scenario.",
+    "ait_02: Package feature scenario.",
+    "ait_03: Package feature scenario.",
+    "ait_04: Package feature scenario.",
+    "ait_05: Package feature scenario.",
+    "ait_06: Package feature scenario.",
+    "ait_07: Package feature scenario.",
+    "ait_08: Package feature scenario.",
+    "precommit_03: Package feature scenario.",
+
     "ste_01: STE feature scenario.",
     "ste_02: STE feature scenario.",
     "ste_03: STE feature scenario.",

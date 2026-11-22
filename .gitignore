@@ -24,6 +24,7 @@ htmlcov/
 .tox/
 .nox/
 .cache/
+.slop_away/packages/
 
 # Type checking and linting
 .mypy_cache/

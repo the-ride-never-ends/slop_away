@@ -1,10 +1,13 @@
 """Read and check project settings."""
 
+import re
 import tomllib
 from dataclasses import dataclass, field, replace
 from math import isfinite
 from pathlib import Path, PurePosixPath
-from typing import Any
+from typing import Any, cast
+
+from slop_away.package_types import parse_package
 
 GROUP_LIMITS = {"INJ": 4, "VRB": 5, "RDB": 1, "STE": 7, "MSG": 4}
 NATIVE_CODES = tuple(
@@ -34,19 +37,28 @@ def _strings(value: object, key: str) -> None:
         raise ConfigError(f"{key}: expected a list of nonempty strings.")
 
 
-def _selectors(value: Any, key: str) -> None:
+def _selectors(value: Any, key: str, packages: set[str]) -> None:
     """Check rule selectors.
 
     Args:
         value: The selector list.
         key: The setting name.
+        packages: The configured package names.
 
     Raises:
         ConfigError: A selector is invalid.
     """
     _strings(value, key)
     for entry in value:
-        if not any(code.startswith(entry) for code in NATIVE_CODES):
+        native = any(code.startswith(entry) for code in NATIVE_CODES)
+        external = entry in packages or any(
+            entry.startswith(name + ".")
+            and re.fullmatch(
+                r"[A-Za-z][A-Za-z0-9_.-]*", entry[len(name) + 1 :]
+            )
+            for name in packages
+        )
+        if not native and not external:
             raise ConfigError(f"{key}: unknown rule selector {entry!r}.")
 
 
@@ -106,11 +118,12 @@ def _budget(value: object, key: str) -> None:
         raise ConfigError(f"{key}: expected a nonnegative integer.")
 
 
-def _profiles(value: Any) -> None:
+def _profiles(value: Any, packages: set[str]) -> None:
     """Check file profiles.
 
     Args:
         value: The profile table.
+        packages: The configured package names.
 
     Raises:
         ConfigError: A profile is invalid.
@@ -130,7 +143,7 @@ def _profiles(value: Any) -> None:
             raise ConfigError(f"{key}: unknown setting {min(unknown)}.")
         for selector in ("select", "ignore"):
             if selector in settings:
-                _selectors(settings[selector], f"{key}.{selector}")
+                _selectors(settings[selector], f"{key}.{selector}", packages)
         if "max-grade" in settings:
             _grade(settings["max-grade"], f"{key}.max-grade")
         if "word-budget" in settings:
@@ -195,7 +208,7 @@ class Config:
         ]
     )
     extend_exclude: list[str] = field(default_factory=list)
-    select: list[str] = field(default_factory=lambda: list(GROUP_LIMITS))
+    select: list[str] | None = None
     ignore: list[str] = field(default_factory=list)
     instruction_files: list[str] = field(
         default_factory=lambda: ["AGENTS.md", "CLAUDE.md", "SKILL.md"]
@@ -204,6 +217,7 @@ class Config:
     word_budget: int | None = None
     profiles: dict[str, dict[str, Any]] = field(default_factory=dict)
     glossary: dict[str, list[str]] = field(default_factory=dict)
+    packages: list[str] = field(default_factory=list)
     root: Path = field(default_factory=Path.cwd, compare=False, repr=False)
 
     def __post_init__(self) -> None:
@@ -213,6 +227,22 @@ class Config:
             ConfigError: A setting is invalid.
         """
         self.root = Path(self.root).resolve()
+        _strings(self.packages, "packages")
+        names: set[str] = set()
+        for url in self.packages:
+            try:
+                package = parse_package(url)
+            except ValueError as error:
+                raise ConfigError(f"packages: {error}") from error
+            if package.name in names or any(
+                code.startswith(package.name) for code in NATIVE_CODES
+            ):
+                raise ConfigError(
+                    f"packages: duplicate or reserved name {package.name!r}."
+                )
+            names.add(package.name)
+        if self.select is None:
+            self.select = list(GROUP_LIMITS) + sorted(names)
         for key in (
             "include",
             "exclude",
@@ -221,7 +251,7 @@ class Config:
         ):
             _strings(getattr(self, key), key.replace("_", "-"))
         for key in ("select", "ignore"):
-            _selectors(getattr(self, key), key)
+            _selectors(getattr(self, key), key, names)
         for key in ("include", "exclude", "extend_exclude"):
             for pattern in getattr(self, key):
                 _pattern(pattern, key.replace("_", "-"))
@@ -229,7 +259,7 @@ class Config:
             raise ConfigError("instruction-files: expected file names.")
         _grade(self.max_grade, "max-grade")
         _budget(self.word_budget, "word-budget")
-        _profiles(self.profiles)
+        _profiles(self.profiles, names)
         _glossary(self.glossary)
 
     def for_path(self, path: str | Path) -> Config:
@@ -267,9 +297,23 @@ class Config:
         Returns:
             True if the rule is selected and is not ignored.
         """
-        return any(code.startswith(item) for item in self.select) and not any(
-            code.startswith(item) for item in self.ignore
-        )
+
+        def matches(entry: str) -> bool:
+            """Check a rule selector.
+
+            Args:
+                entry: The selector.
+
+            Returns:
+                True if the selector includes the rule.
+            """
+            if "." in code:
+                return entry in {code, code.split(".", 1)[0]}
+            return code.startswith(entry)
+
+        return any(
+            matches(entry) for entry in cast(list[str], self.select)
+        ) and not any(matches(entry) for entry in self.ignore)
 
 
 def _read_table(path: Path) -> dict[str, Any]:
@@ -347,6 +391,7 @@ def load_config(root: str | Path) -> Config:
         "word-budget",
         "profiles",
         "glossary",
+        "packages",
     }
     unknown = settings.keys() - allowed
     if unknown:

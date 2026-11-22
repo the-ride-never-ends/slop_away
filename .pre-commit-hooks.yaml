@@ -1,3 +1,11 @@
+- id: slop_away-sync
+  name: slop_away sync
+  description: Download configured rule packages.
+  entry: slop_away sync
+  language: python
+  pass_filenames: false
+  always_run: true
+  stages: [pre-commit]
 - id: slop_away
   name: slop_away
   description: Check Markdown files.

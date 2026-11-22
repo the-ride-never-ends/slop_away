@@ -4,17 +4,24 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from slop_away.config import Config
+from slop_away.external import scan_external
 from slop_away.findings import Finding
 from slop_away.injection import scan_injection
 from slop_away.markdown import parse_document
+from slop_away.packages import load_rules
 from slop_away.readability import scan_readability
+from slop_away.rule_schema import Rule
 from slop_away.selection import select_files
 from slop_away.ste import scan_ste
 from slop_away.verbosity import scan_verbosity
 
 
 def _check(
-    text: str, path: Path, config: Config, seen: dict[str, Path]
+    text: str,
+    path: Path,
+    config: Config,
+    seen: dict[str, Path],
+    rules: tuple[Rule, ...],
 ) -> list[Finding]:
     """Check a document with settings for its path.
 
@@ -23,6 +30,7 @@ def _check(
         path: The source path.
         config: The project settings.
         seen: Sentences from files checked in this run.
+        rules: The configured package rules.
 
     Returns:
         Findings in source order.
@@ -34,6 +42,7 @@ def _check(
         findings.extend(scan_verbosity(text, path, settings, document, seen))
         findings.extend(scan_readability(text, path, settings, document))
         findings.extend(scan_ste(text, path, settings, document))
+        findings.extend(scan_external(text, path, settings, document, rules))
     return sorted(
         findings, key=lambda item: (item.line, item.column, item.code)
     )
@@ -49,8 +58,11 @@ def check_text(text: str, path: str | Path, config: Config) -> list[Finding]:
 
     Returns:
         Findings in source order.
+
+    Raises:
+        ValueError: A configured package cache or selector is invalid.
     """
-    return _check(text, Path(path), config, {})
+    return _check(text, Path(path), config, {}, load_rules(config))
 
 
 def check_files(paths: Sequence[str | Path], config: Config) -> list[Finding]:
@@ -68,6 +80,7 @@ def check_files(paths: Sequence[str | Path], config: Config) -> list[Finding]:
         UnicodeError: An input is not UTF-8 text.
         ValueError: An input is outside the project.
     """
+    rules = load_rules(config)
     findings = []
     seen: dict[str, Path] = {}
     for path in select_files(paths, config):
@@ -77,6 +90,7 @@ def check_files(paths: Sequence[str | Path], config: Config) -> list[Finding]:
                 path.relative_to(config.root),
                 config,
                 seen,
+                rules,
             )
         )
     return findings

@@ -7,6 +7,57 @@ Headers will be commit hashes.
 ## [Unreleased]
 
 ### Added
+- Add the Slice 4 package cache, `sync` command, Vale rule reader, and
+  `slop_away-sync` pre-commit hook.
+
+### Decisions
+- Read ZIP packages from HTTPS URLs. Permit HTTP only for loopback test
+  servers. Use the ZIP file name without its extension as the package name.
+- Accept rules under `<name>/`, `styles/<name>/`, or
+  `<name>/styles/<name>/`. Require exactly one rule directory.
+- Store each package in `.slop_away/packages/<name>.zip`. Keep the source
+  URL and content hashes in the cached package. Do not extract archives.
+- Validate downloads and rule files before updating caches. Publish each
+  cache file with an atomic replacement. Keep checks offline.
+- Enable configured packages with native groups by default. An explicit
+  `select` replaces that default. Package selectors match whole names.
+- Support existence, substitution, occurrence, and sequence rules. Reject
+  unsupported rule types, fields, and actions. Treat every finding as an
+  error, including rules with Vale warning or suggestion levels.
+- Apply project prose exclusions even to Vale `raw` scopes. Do not run
+  package rules on instruction files. Require every configured package
+  to have a valid cache, including packages excluded by rule selection.
+- The inspected ai-tells v1.37.0 archive has 137 rules, rather than the
+  134 rules listed in the design. All use the four planned rule types.
+- Use PyYAML for rule data and `regex` for Unicode patterns and match
+  time limits. Do not execute downloaded code or rule actions.
+- Limit downloads to 16 MiB, expanded archives to 64 MiB, archives to
+  4096 members, and rule files to 1 MiB. Limit sequence definitions to
+  64 conditions and sequence searches to 100000 operations per sentence.
+  Use a one-second limit for each regex search and a 30-second network
+  timeout. Reject duplicate archive names, links, and unsafe paths.
+- Require direct YAML children in the rule directory. Reject nested
+  rules and duplicate rule names. Permit empty YAML documents around
+  one rule mapping. Reject duplicate YAML keys and absent message values.
+- Support text, raw, sentence, paragraph, heading, heading-level, and
+  list scopes. Scope lists include positive matches and remove negative
+  matches. Sequence rules use full-token text and word-class patterns.
+- Report occurrence limits once per scope. Point to the first match,
+  or the first visible character when the count is zero. Apply rule
+  limits per document. Keep messages on one output line.
+- Use scoped prose for finding fingerprints. Reuse parsed sentences
+  across sequence rules in each document. Keep package caches out of Git.
+
+### Validation
+- All 426 tests pass, including all Slice 4 feature scenarios.
+- Ruff, mypy, Poetry lock checks, and hook manifest checks pass.
+- Sync the inspected ai-tells archive, stop its local download server,
+  and check prose with its existence, substitution, and sequence rules.
+  All 137 rule definitions pass validation.
+
+## [5cfd638cb9aa2f4fdcdc50da0c9fc9bee6ae8f6b]
+
+### Added
 - Add the Slice 3 parser interface, STE001 to STE007, and the terminology
   glossary in the project config.
 - Keep reference link identifiers out of prose only when their link
