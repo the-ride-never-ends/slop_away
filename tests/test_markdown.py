@@ -34,3 +34,10 @@ def test_markdown_05():
 @scenario("features/markdown.feature", "Link text is checked as prose")
 def test_markdown_07():
     """GIVEN the feature setup WHEN the action runs THEN check its result."""
+
+
+@scenario(
+    "features/markdown.feature", "An HTML comment is skipped by prose rules"
+)
+def test_markdown_06():
+    """GIVEN the feature setup WHEN the action runs THEN check its result."""

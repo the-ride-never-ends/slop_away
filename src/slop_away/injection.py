@@ -1,6 +1,5 @@
 """Check text for injection patterns."""
 
-import hashlib
 import re
 import unicodedata
 from collections.abc import Iterator
@@ -8,8 +7,8 @@ from datetime import date
 from pathlib import Path
 
 from slop_away.config import Config
-from slop_away.findings import Finding
-from slop_away.markdown import Projection, parse_document
+from slop_away.findings import Finding, make_finding
+from slop_away.markdown import Document, Projection
 
 GAP = r"[*_~]*\s+[*_~]*"
 DIRECTIVE = re.compile(
@@ -88,31 +87,6 @@ def _directives(text: str) -> Iterator[re.Match[str]]:
                 yield match
 
 
-def _finding(
-    code: str, offset: int, text: str, path: Path, context: str
-) -> Finding:
-    """Describe a rule match.
-
-    Args:
-        code: The rule code.
-        offset: The source offset.
-        text: The source text.
-        path: The source path.
-        context: The sentence or action text.
-
-    Returns:
-        The rule finding.
-    """
-    normalized = " ".join(context.casefold().split())
-    digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
-    fingerprint = f"{code}:{path.as_posix()}:{digest}"
-    breaks = list(re.finditer(r"\r\n|\r|\n", text[:offset]))
-    line = len(breaks) + 1
-    column = offset - (breaks[-1].end() if breaks else 0) + 1
-    message, hint = MESSAGES[code]
-    return Finding(code, path, line, column, message, hint, fingerprint)
-
-
 def _context(projection: Projection, start: int) -> str:
     """Get the text for a finding.
 
@@ -130,18 +104,20 @@ def _context(projection: Projection, start: int) -> str:
     return source[left:right]
 
 
-def scan_injection(text: str, path: Path, config: Config) -> list[Finding]:
+def scan_injection(
+    text: str, path: Path, config: Config, document: Document
+) -> list[Finding]:
     """Check the injection rules.
 
     Args:
         text: The Markdown source.
         path: The source path.
         config: The project settings.
+        document: The extracted Markdown text.
 
     Returns:
         Findings in source order.
     """
-    document = parse_document(text)
     findings: list[Finding] = []
     instruction = path.name in config.instruction_files
     for projection in (document.prose, *document.comments):
@@ -167,12 +143,13 @@ def scan_injection(text: str, path: Path, config: Config) -> list[Finding]:
         for code, index in matches:
             if config.enabled(code):
                 findings.append(
-                    _finding(
+                    make_finding(
                         code,
                         projection.offsets[index],
                         text,
                         path,
                         _context(projection, index),
+                        *MESSAGES[code],
                     )
                 )
     return sorted(

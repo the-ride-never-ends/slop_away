@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from markdown_it import MarkdownIt
 from markdown_it.helpers import parseLinkDestination, parseLinkTitle
+from markdown_it.token import Token
 from mdit_py_plugins.front_matter import front_matter_plugin
 
 COMMENT = re.compile(r"(?<!\\)<!--[\s\S]*?(?:-->|\Z)")
@@ -28,11 +29,22 @@ class Projection:
 
 
 @dataclass(frozen=True)
+class Block:
+    """Hold a block of visible document text."""
+
+    kind: str
+    level: int
+    offset: int
+    prose: Projection
+
+
+@dataclass(frozen=True)
 class Document:
     """Hold visible text and HTML comments."""
 
     prose: Projection
     comments: tuple[Projection, ...]
+    blocks: tuple[Block, ...]
 
 
 def _mask(characters: list[str], start: int, end: int) -> None:
@@ -115,6 +127,61 @@ def _comment(text: str, start: int) -> Projection:
     return _project(body, start + 4)
 
 
+def _blocks(
+    tokens: list[Token], starts: list[int], characters: list[str]
+) -> tuple[Block, ...]:
+    """Group visible text by document block.
+
+    Args:
+        tokens: The Markdown blocks.
+        starts: The source line offsets.
+        characters: The visible source characters.
+
+    Returns:
+        The document blocks with source offsets.
+    """
+    result = []
+    depth = 0
+    kind = "paragraph"
+    level = 0
+    for token in tokens:
+        if token.type in {"bullet_list_open", "ordered_list_open"}:
+            depth += 1
+        elif token.type in {"bullet_list_close", "ordered_list_close"}:
+            depth -= 1
+        elif token.type == "paragraph_open":
+            kind, level = ("list" if depth else "paragraph"), 0
+        elif token.type == "heading_open":
+            kind, level = "heading", int(token.tag[1:])
+        if token.type not in {"inline", "html_block"} or token.map is None:
+            continue
+        start, end = (starts[index] for index in token.map)
+        visible = characters[start:end].copy()
+        block_kind = (
+            "list"
+            if depth
+            else "paragraph"
+            if token.type == "html_block"
+            else kind
+        )
+        prefix = r"(?m)^[ \t]*(?:>[ \t]*)*"
+        if block_kind == "heading":
+            prefix += r"(?:#{1,6}[ \t]+)?"
+        elif block_kind == "list":
+            prefix += r"(?:[-*+]|\d+[.)])[ \t]+(?:\[[ xX]\][ \t]+)?"
+        for match in re.finditer(prefix, "".join(visible)):
+            _mask(visible, match.start(), match.end())
+        result.append(
+            Block(
+                block_kind,
+                level if block_kind == "heading" else 0,
+                start,
+                _project("".join(visible), start),
+            )
+        )
+    return tuple(result)
+
+
 def parse_document(text: str) -> Document:
     """Extract the text that rules can check.
 
@@ -151,7 +218,16 @@ def parse_document(text: str) -> Document:
         comments.append(_comment(match.group(), match.start()))
         _mask(characters, match.start(), match.end())
     _destinations(characters)
-    for pattern in (TAG, URL):
-        for match in pattern.finditer("".join(characters)):
-            _mask(characters, match.start(), match.end())
-    return Document(_project("".join(characters)), tuple(comments))
+    for match in TAG.finditer("".join(characters)):
+        _mask(characters, match.start(), match.end())
+    source = "".join(characters)
+    for match in URL.finditer(source):
+        end = match.end()
+        while end > match.start() and source[end - 1] in ".,;:!?)":
+            end -= 1
+        _mask(characters, match.start(), end)
+    return Document(
+        _project("".join(characters)),
+        tuple(comments),
+        _blocks(tokens, starts, characters),
+    )

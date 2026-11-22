@@ -1,7 +1,8 @@
 """Read and check project settings."""
 
 import tomllib
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from math import isfinite
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -33,6 +34,109 @@ def _strings(value: object, key: str) -> None:
         raise ConfigError(f"{key}: expected a list of nonempty strings.")
 
 
+def _selectors(value: Any, key: str) -> None:
+    """Check rule selectors.
+
+    Args:
+        value: The selector list.
+        key: The setting name.
+
+    Raises:
+        ConfigError: A selector is invalid.
+    """
+    _strings(value, key)
+    for entry in value:
+        if not any(code.startswith(entry) for code in NATIVE_CODES):
+            raise ConfigError(f"{key}: unknown rule selector {entry!r}.")
+
+
+def _pattern(value: str, key: str) -> None:
+    """Check a project path pattern.
+
+    Args:
+        value: The pattern.
+        key: The setting name.
+
+    Raises:
+        ConfigError: The pattern is invalid.
+    """
+    path = PurePosixPath(value)
+    if (
+        not value.strip()
+        or path.is_absolute()
+        or ".." in path.parts
+        or not value.rstrip("/")
+    ):
+        raise ConfigError(f"{key}: expected a project pattern.")
+
+
+def _grade(value: object, key: str) -> None:
+    """Check a grade limit.
+
+    Args:
+        value: The grade limit.
+        key: The setting name.
+
+    Raises:
+        ConfigError: The limit is invalid.
+    """
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int | float)
+        or value < 0
+        or isinstance(value, float)
+        and not isfinite(value)
+    ):
+        raise ConfigError(f"{key}: expected a finite nonnegative number.")
+
+
+def _budget(value: object, key: str) -> None:
+    """Check a word budget.
+
+    Args:
+        value: The word budget, or None for no limit.
+        key: The setting name.
+
+    Raises:
+        ConfigError: The budget is invalid.
+    """
+    if value is not None and (
+        isinstance(value, bool) or not isinstance(value, int) or value < 0
+    ):
+        raise ConfigError(f"{key}: expected a nonnegative integer.")
+
+
+def _profiles(value: Any) -> None:
+    """Check file profiles.
+
+    Args:
+        value: The profile table.
+
+    Raises:
+        ConfigError: A profile is invalid.
+    """
+    if not isinstance(value, dict):
+        raise ConfigError("profiles: expected a table.")
+    allowed = {"select", "ignore", "max-grade", "word-budget"}
+    for pattern, settings in value.items():
+        if not isinstance(pattern, str):
+            raise ConfigError("profiles: expected string patterns.")
+        _pattern(pattern, "profiles")
+        key = f"profiles.{pattern}"
+        if not isinstance(settings, dict):
+            raise ConfigError(f"{key}: expected a settings table.")
+        unknown = settings.keys() - allowed
+        if unknown:
+            raise ConfigError(f"{key}: unknown setting {min(unknown)}.")
+        for selector in ("select", "ignore"):
+            if selector in settings:
+                _selectors(settings[selector], f"{key}.{selector}")
+        if "max-grade" in settings:
+            _grade(settings["max-grade"], f"{key}.max-grade")
+        if "word-budget" in settings:
+            _budget(settings["word-budget"], f"{key}.word-budget")
+
+
 @dataclass
 class Config:
     """Hold the project settings."""
@@ -53,6 +157,9 @@ class Config:
     instruction_files: list[str] = field(
         default_factory=lambda: ["AGENTS.md", "CLAUDE.md", "SKILL.md"]
     )
+    max_grade: int | float = 10
+    word_budget: int | None = None
+    profiles: dict[str, dict[str, Any]] = field(default_factory=dict)
     root: Path = field(default_factory=Path.cwd, compare=False, repr=False)
 
     def __post_init__(self) -> None:
@@ -66,30 +173,45 @@ class Config:
             "include",
             "exclude",
             "extend_exclude",
-            "select",
-            "ignore",
             "instruction_files",
         ):
             _strings(getattr(self, key), key.replace("_", "-"))
         for key in ("select", "ignore"):
-            for entry in getattr(self, key):
-                if not any(code.startswith(entry) for code in NATIVE_CODES):
-                    raise ConfigError(
-                        f"{key}: unknown rule selector {entry!r}."
-                    )
+            _selectors(getattr(self, key), key)
         for key in ("include", "exclude", "extend_exclude"):
             for pattern in getattr(self, key):
-                path = PurePosixPath(pattern)
-                if (
-                    path.is_absolute()
-                    or ".." in path.parts
-                    or not pattern.rstrip("/")
-                ):
-                    raise ConfigError(
-                        f"{key.replace('_', '-')}: expected a project pattern."
-                    )
+                _pattern(pattern, key.replace("_", "-"))
         if any(Path(name).name != name for name in self.instruction_files):
             raise ConfigError("instruction-files: expected file names.")
+        _grade(self.max_grade, "max-grade")
+        _budget(self.word_budget, "word-budget")
+        _profiles(self.profiles)
+
+    def for_path(self, path: str | Path) -> Config:
+        """Get settings for a document path.
+
+        Args:
+            path: The document path.
+
+        Returns:
+            Settings with all matching profiles applied.
+
+        Raises:
+            ValueError: An absolute path is outside the project.
+        """
+        relative = Path(path)
+        if relative.is_absolute():
+            relative = relative.relative_to(self.root)
+        settings: dict[str, Any] = {}
+        for pattern, profile in self.profiles.items():
+            if PurePosixPath(relative.as_posix()).full_match(pattern):
+                settings.update(
+                    {
+                        key.replace("-", "_"): value
+                        for key, value in profile.items()
+                    }
+                )
+        return replace(self, profiles={}, **settings) if settings else self
 
     def enabled(self, code: str) -> bool:
         """Check whether a rule is selected.
@@ -176,6 +298,9 @@ def load_config(root: str | Path) -> Config:
         "select",
         "ignore",
         "instruction-files",
+        "max-grade",
+        "word-budget",
+        "profiles",
     }
     unknown = settings.keys() - allowed
     if unknown:

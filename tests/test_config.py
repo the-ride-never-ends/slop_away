@@ -52,3 +52,11 @@ def test_config_07():
 )
 def test_config_11():
     """GIVEN the feature setup WHEN the action runs THEN check its result."""
+
+
+@scenario(
+    "features/config.feature",
+    "A profile changes rule settings for files matching its glob",
+)
+def test_config_08():
+    """GIVEN the feature setup WHEN the action runs THEN check its result."""
