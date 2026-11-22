@@ -7,6 +7,52 @@ Headers will be commit hashes.
 ## [Unreleased]
 
 ### Added
+- Add the Slice 5 fix API and the `--fix` and `--unsafe-fixes` options.
+
+### Decisions
+- Apply fixes only to visible source ranges. Preserve code, tables,
+  front matter, URLs, link destinations, and HTML tag attributes.
+- Safe fixes expand unambiguous contractions, reduce extra spaces within
+  prose lines, and normalize spacing after valid ATX heading markers.
+  Preserve indentation, line endings, and Markdown hard line breaks.
+- Leave ambiguous contractions, possessives, passive voice, long sentences,
+  and directives for review. Fixes do not infer missing meaning.
+- Remove zero-width spaces, byte-order marks, and directional controls
+  from visible prose and HTML comments when INJ004 is enabled. Preserve
+  joiners that can change words or emoji. Instruction files get only
+  hidden-character fixes.
+- Unsafe fixes replace glossary synonyms, apply single external
+  substitutions, and remove native filler phrases. Rule selectors and
+  file profiles also control these fixes. Do not execute rule actions.
+- Validate all selected files and package caches before file writes.
+  Check the changed text again and report only the remaining findings.
+  `--unsafe-fixes` includes safe fixes and does not require `--fix`.
+- Remove hidden characters before other safe changes. Parse the result
+  again before changing prose. Apply safe changes before unsafe changes.
+  Reject conflicting edits,
+  replacement cycles, and plans that need more than 20 passes. Do not
+  return partially fixed text when a plan is invalid.
+- Apply all selected external substitution matches. Leave replacements
+  with alternative words for review. Finding limits control reports.
+- Replace changed files atomically, one file at a time. Preserve file
+  modes and line endings. Do not replace files whose text is unchanged.
+  A later file-system write failure can leave earlier files changed.
+- Whitespace and heading spacing have no rule codes. Apply these format
+  changes to ordinary documents when fixing, including an empty selection.
+- Keep native replacement capitalization. Keep external preferred text as
+  written in its rule. Leave edits across source encodings or incomplete
+  Markdown formatting for review.
+- No new dependencies are needed for this slice.
+
+### Validation
+- All 496 tests pass, including all Slice 5 feature scenarios.
+- Ruff, mypy, Poetry lock checks, and hook manifest checks pass.
+- Test skipped content, safe-fix idempotence, rule selection, unsafe word
+  swaps, conflicts, file modes, line endings, and batch input failures.
+
+## [7cc97860e6dcca1c941096973082aa75a1802ce3]
+
+### Added
 - Add the Slice 4 package cache, `sync` command, Vale rule reader, and
   `slop_away-sync` pre-commit hook.
 

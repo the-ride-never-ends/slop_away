@@ -2,8 +2,10 @@
 
 import re
 from pathlib import Path
+from typing import Any
 
 from slop_away.config import Config
+from slop_away.edits import Edit, propose_edit
 from slop_away.findings import Finding, make_finding
 from slop_away.markdown import Block, Document, Projection
 from slop_away.package_types import PackageError
@@ -164,20 +166,77 @@ def _matches(
                 else "Revise this text."
             )
             if rule.kind == "substitution":
-                replacement = rule.swaps[index]
-                fields = list(re.finditer(r"\$(\d+)", replacement))
-                for field in reversed(fields):
-                    replacement = (
-                        replacement[: field.start()]
-                        + (match[int(field[1])] or "")
-                        + replacement[field.end() :]
-                    )
+                replacement = _replacement(match, rule.swaps[index])
                 values = [replacement, match[0]]
                 hint = f"Use {replacement!r}."
             result.append(
                 (prose.offsets[match.start()], prose.text, values, hint)
             )
     return result
+
+
+def _replacement(match: Any, template: str) -> str:
+    """Fill a substitution replacement.
+
+    Args:
+        match: The pattern match.
+        template: The replacement text.
+
+    Returns:
+        The replacement with captured text.
+    """
+    for field in reversed(list(re.finditer(r"\$(\d+)", template))):
+        template = (
+            template[: field.start()]
+            + (match[int(field[1])] or "")
+            + template[field.end() :]
+        )
+    return template
+
+
+def swap_edits(
+    text: str, document: Document, config: Config, rules: tuple[Rule, ...]
+) -> list[Edit]:
+    """Propose external word swaps.
+
+    Args:
+        text: The source text.
+        document: The parsed document.
+        config: The document settings.
+        rules: The configured rules.
+
+    Returns:
+        Source changes with one preferred replacement.
+
+    Raises:
+        PackageError: A pattern exceeds its time limit.
+    """
+    edits = []
+    for rule in rules:
+        if rule.kind != "substitution" or not config.enabled(rule.code):
+            continue
+        try:
+            for prose in _scopes(rule, document):
+                for pattern, template in zip(rule.patterns, rule.swaps):
+                    if "|" in template:
+                        continue
+                    for match in pattern.finditer(prose.text, timeout=1):
+                        if _except(rule, match[0]):
+                            continue
+                        edit = propose_edit(
+                            text,
+                            prose,
+                            match.start(),
+                            match.end(),
+                            _replacement(match, template),
+                        )
+                        if edit is not None:
+                            edits.append(edit)
+        except TimeoutError as error:
+            raise PackageError(
+                f"{rule.code}: pattern exceeds the time limit."
+            ) from error
+    return edits
 
 
 def _accept(condition: SequenceToken, token: ParsedToken) -> bool:

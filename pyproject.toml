@@ -33,6 +33,13 @@ pre-commit = ">=4,<5"
 testpaths = ["tests"]
 addopts = "--strict-config --strict-markers"
 markers = [
+    "fix_01: Fix feature scenario.",
+    "fix_02: Fix feature scenario.",
+    "fix_03: Fix feature scenario.",
+    "fix_04: Fix feature scenario.",
+    "fix_05: Fix feature scenario.",
+    "fix_06: Fix feature scenario.",
+
     "sync_01: Package feature scenario.",
     "sync_02: Package feature scenario.",
     "sync_03: Package feature scenario.",
