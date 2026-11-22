@@ -8,13 +8,6 @@ refer to FEATURE_MAP.md.
 
 ## Slice 1: Injection checks on Markdown
 
-- [ ] T006 2026-11-21: CLI basics. Tags: @cli_02 @cli_03 @cli_04 @cli_05
-- [ ] T007 2026-11-21: Config loading, precedence, validation, `select`, and `ignore`. Tags: @config_01 @config_02 @config_03 @config_04 @config_05 @config_06 @config_07 @config_11
-- [ ] T008 2026-11-21: File selection. Tags: @selection_01 @selection_02 @selection_03 @selection_04 @selection_05 @selection_06
-- [ ] T009 2026-11-21: Markdown parsing and prose extraction. Tags: @markdown_01 @markdown_02 @markdown_03 @markdown_04 @markdown_05 @markdown_07
-- [ ] T010 2026-11-21: `text` and `agent` output formats. Tags: @output_01 @output_02 @output_03
-- [ ] T011 2026-11-21: Rules INJ001 to INJ004. Tags: @inj_01 @inj_02 @inj_03 @inj_04 @inj_05 @inj_06 @inj_07 @inj_08
-- [ ] T012 2026-11-21: The git test harness and the `slop_away` pre-commit hook. Tags: @precommit_01 @precommit_02
 
 ## Slice 2: Verbosity and readability
 
@@ -70,3 +63,10 @@ refer to FEATURE_MAP.md.
 - [x] T003 2026-11-21: Create `tests/features/`, `tests/properties/`, `tests/differential/`, and the corpus folders `bad/`, `fixed/`, `good/`, with a format for each bad document's expected codes. Tags: none
 - [x] T004 2026-11-21: Write the api and cli test harnesses. Tags: none
 - [x] T005 2026-11-21: Add `.pre-commit-hooks.yaml` and the CI workflow that runs `pre-commit run --all-files`. Tags: none
+- [x] T006 2026-11-21: CLI basics. Tags: @cli_02 @cli_03 @cli_04 @cli_05
+- [x] T007 2026-11-21: Config loading, precedence, validation, `select`, and `ignore`. Tags: @config_01 @config_02 @config_03 @config_04 @config_05 @config_06 @config_07 @config_11
+- [x] T008 2026-11-21: File selection. Tags: @selection_01 @selection_02 @selection_03 @selection_04 @selection_05 @selection_06
+- [x] T009 2026-11-21: Markdown parsing and prose extraction. Tags: @markdown_01 @markdown_02 @markdown_03 @markdown_04 @markdown_05 @markdown_07
+- [x] T010 2026-11-21: `text` and `agent` output formats. Tags: @output_01 @output_02 @output_03
+- [x] T011 2026-11-21: Rules INJ001 to INJ004. Tags: @inj_01 @inj_02 @inj_03 @inj_04 @inj_05 @inj_06 @inj_07 @inj_08
+- [x] T012 2026-11-21: The git test harness and the `slop_away` pre-commit hook. Tags: @precommit_01 @precommit_02

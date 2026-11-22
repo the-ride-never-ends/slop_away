@@ -7,6 +7,43 @@ Headers will be commit hashes.
 ## [Unreleased]
 
 ### Added
+- Add the Slice 1 public API, config loading, file selection, Markdown
+  extraction, injection checks, and text and agent output.
+- Add feature tests and a Git test tool that checks real commits with
+  the installed pre-commit hook.
+
+### Decisions
+- Use markdown-it-py with link support and the front matter plugin.
+  Use pathspec for Git ignore patterns. Checks need no network access.
+- Find CLI settings from the nearest config or Git directory above the
+  command directory. With no paths, check the command directory.
+- Resolve API input paths from `config.root`. Return sorted, unique
+  absolute paths from `select_files`. Findings use project-relative paths.
+- Apply exclusions to explicit paths too. Skip symbolic links. Reject
+  paths outside the project and input patterns with no matches.
+- Read nested `.gitignore` files. Prune excluded directories.
+- Accept the Slice 1 config keys only. Add later settings with their
+  slices. Check rule selectors against the native rule code list.
+- Treat checked boxes, explicit status fields, and status labels in
+  parentheses as action status. Require valid dates in `YYYY-MM-DD` form.
+- Check Unicode format characters as hidden text. Check HTML comments
+  with INJ rules only. Do not check code examples as comments.
+- Build each fingerprint from the rule code, project path, and SHA-256
+  hash of the sentence text after case and whitespace normalization.
+- In Git tests, use the installed command with a local copy of the hook
+  manifest. Change its language to `system` to keep tests offline.
+- Return exit code 2 for internal errors and log the error on stderr.
+
+### Validation
+- All 127 tests pass on Python 3.14.4, including every Slice 1 scenario.
+- Real Git commits pass for clean Markdown and fail for findings.
+- Pre-commit, Poetry metadata and lock checks, Python style checks, and
+  type checks pass. The wheel and source archive build.
+- Move T006 to T012 to Done. Keep the protected document set unchanged.
+
+## [8a960d2f7424f4a72fca7bc28784a5b235317822]
+
+### Added
 - Add the Slice 0 package in `src/slop_away` and tests in `tests`.
 - Add the version command, API and CLI test tools, and test directories.
 - Add Poetry dependencies, a hook manifest, and CI checks.

@@ -4,6 +4,11 @@ version = "0.1.0"
 description = "Check documentation and commit messages."
 requires-python = ">=3.14"
 license = "MIT"
+dependencies = [
+    "markdown-it-py[linkify]>=4,<5",
+    "mdit-py-plugins>=0.5,<1",
+    "pathspec>=1,<2",
+]
 
 [project.scripts]
 slop_away = "slop_away.cli:main"
@@ -18,10 +23,50 @@ hypothesis = ">=6,<7"
 pytest-cov = ">=7,<8"
 pre-commit = ">=4,<5"
 
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-config --strict-markers"
-markers = ["cli_01: Print the package version."]
+markers = [
+    "cli_01: cli feature scenario.",
+    "cli_02: cli feature scenario.",
+    "cli_03: cli feature scenario.",
+    "cli_04: cli feature scenario.",
+    "cli_05: cli feature scenario.",
+    "config_01: config feature scenario.",
+    "config_02: config feature scenario.",
+    "config_03: config feature scenario.",
+    "config_04: config feature scenario.",
+    "config_05: config feature scenario.",
+    "config_06: config feature scenario.",
+    "config_07: config feature scenario.",
+    "config_11: config feature scenario.",
+    "selection_01: selection feature scenario.",
+    "selection_02: selection feature scenario.",
+    "selection_03: selection feature scenario.",
+    "selection_04: selection feature scenario.",
+    "selection_05: selection feature scenario.",
+    "selection_06: selection feature scenario.",
+    "markdown_01: markdown feature scenario.",
+    "markdown_02: markdown feature scenario.",
+    "markdown_03: markdown feature scenario.",
+    "markdown_04: markdown feature scenario.",
+    "markdown_05: markdown feature scenario.",
+    "markdown_07: markdown feature scenario.",
+    "inj_01: inj feature scenario.",
+    "inj_02: inj feature scenario.",
+    "inj_03: inj feature scenario.",
+    "inj_04: inj feature scenario.",
+    "inj_05: inj feature scenario.",
+    "inj_06: inj feature scenario.",
+    "inj_07: inj feature scenario.",
+    "inj_08: inj feature scenario.",
+    "output_01: output feature scenario.",
+    "output_02: output feature scenario.",
+    "output_03: output feature scenario.",
+    "precommit_01: precommit feature scenario.",
+    "precommit_02: precommit feature scenario.",
+]
 
 [tool.coverage.run]
 source = ["slop_away"]
