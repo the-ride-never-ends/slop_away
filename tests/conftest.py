@@ -12,6 +12,7 @@ pytest_plugins = [
     "tests.fix_steps",
     "tests.adoption_steps",
     "tests.message_steps",
+    "tests.setup_steps",
 ]
 
 

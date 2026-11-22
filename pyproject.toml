@@ -33,6 +33,21 @@ pre-commit = ">=4,<5"
 testpaths = ["tests"]
 addopts = "--strict-config --strict-markers"
 markers = [
+    "hooks_01: Project setup feature scenario.",
+    "hooks_02: Project setup feature scenario.",
+    "hooks_03: Project setup feature scenario.",
+    "hooks_04: Project setup feature scenario.",
+    "hooks_05: Project setup feature scenario.",
+    "hooks_06: Project setup feature scenario.",
+    "hooks_07: Project setup feature scenario.",
+    "init_01: Project setup feature scenario.",
+    "init_02: Project setup feature scenario.",
+    "init_03: Project setup feature scenario.",
+    "init_04: Project setup feature scenario.",
+    "init_05: Project setup feature scenario.",
+    "init_06: Project setup feature scenario.",
+    "init_07: Project setup feature scenario.",
+
     "msg_01: Commit-message feature scenario.",
     "msg_02: Commit-message feature scenario.",
     "msg_03: Commit-message feature scenario.",
