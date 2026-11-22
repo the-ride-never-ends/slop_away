@@ -65,7 +65,7 @@ def _model() -> Language:
     return spacy.load("en_core_web_sm", exclude=["ner"])
 
 
-def _plain(projection: Projection) -> Projection:
+def prose_text(projection: Projection) -> Projection:
     """Prepare prose for language analysis.
 
     Args:
@@ -114,7 +114,7 @@ class SpacyParser:
         Returns:
             Sentences and their word annotations.
         """
-        plain = _plain(projection)
+        plain = prose_text(projection)
         if not word_matches(plain.text):
             return ()
         document = _model()(plain.text)

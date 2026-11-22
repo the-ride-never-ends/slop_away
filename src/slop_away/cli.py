@@ -9,6 +9,7 @@ from pathlib import Path
 
 from slop_away.checks import check_files
 from slop_away.config import ConfigError, find_root, load_config
+from slop_away.packages import sync_packages
 
 LOGGER = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "--version", action="version", version=version("slop_away")
     )
     commands = parser.add_subparsers(dest="command")
+    commands.add_parser("sync", help="Download configured rule packages.")
     check = commands.add_parser("check", help="Check Markdown files.")
     check.add_argument("paths", nargs="*", default=["."])
     check.add_argument(
@@ -41,6 +43,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     try:
         config = load_config(find_root(Path.cwd()))
+        if args.command == "sync":
+            sync_packages(config)
+            return 0
         paths = [str(Path.cwd() / path) for path in args.paths]
         findings = check_files(paths, config)
         for finding in findings:

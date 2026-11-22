@@ -17,9 +17,6 @@ refer to FEATURE_MAP.md.
 
 ## Slice 4: Vale-compatible rules
 
-- [ ] T020 2026-11-21: `slop_away sync` and the package cache. Tags: @sync_01 @sync_02 @sync_03
-- [ ] T021 2026-11-21: Load Vale YAML rules of types existence, substitution, occurrence, and sequence. Tags: @ait_01 @ait_02 @ait_03 @ait_04 @ait_05 @ait_06 @ait_07 @ait_08
-- [ ] T022 2026-11-21: The `slop_away-sync` pre-commit hook. Tags: @precommit_03
 
 ## Slice 5: Fixes
 
@@ -70,3 +67,6 @@ refer to FEATURE_MAP.md.
 - [x] T017 2026-11-21: Procedure detection, STE001, and STE002. Tags: @ste_01 @ste_02 @ste_03 @ste_04
 - [x] T018 2026-11-21: STE003 to STE006. Tags: @ste_05 @ste_06 @ste_07 @ste_08
 - [x] T019 2026-11-21: STE007 and the config glossary. Tags: @ste_09
+- [x] T020 2026-11-21: `slop_away sync` and the package cache. Tags: @sync_01 @sync_02 @sync_03
+- [x] T021 2026-11-21: Load Vale YAML rules of types existence, substitution, occurrence, and sequence. Tags: @ait_01 @ait_02 @ait_03 @ait_04 @ait_05 @ait_06 @ait_07 @ait_08
+- [x] T022 2026-11-21: The `slop_away-sync` pre-commit hook. Tags: @precommit_03
