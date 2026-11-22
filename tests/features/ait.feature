@@ -82,3 +82,34 @@ Feature: Vale-compatible rules
     And the default config
     When check_text runs on "docs/guide.md" with the text "We delve into the parser."
     Then check_text returns no finding with code "test-pkg.Delve"
+
+  @ait_07
+  Scenario: An explicit select that leaves out the package excludes its rules
+    Given a synced package "test-pkg" with the rule file "Delve.yml":
+      """
+      extends: existence
+      message: "Avoid '%s'."
+      tokens:
+        - delve
+      """
+    And a config that lists the package "test-pkg" with select ["INJ"]
+    When check_text runs on "docs/guide.md" with the text "We delve into the parser."
+    Then check_text returns no finding with code "test-pkg.Delve"
+
+  @ait_08
+  Scenario Outline: ignore removes package rules by package name or rule code
+    Given a synced package "test-pkg" with the rule file "Delve.yml":
+      """
+      extends: existence
+      message: "Avoid '%s'."
+      tokens:
+        - delve
+      """
+    And a config that lists the package "test-pkg" with ignore ["<entry>"]
+    When check_text runs on "docs/guide.md" with the text "We delve into the parser."
+    Then check_text returns no finding with code "test-pkg.Delve"
+
+    Examples:
+      | entry          |
+      | test-pkg       |
+      | test-pkg.Delve |

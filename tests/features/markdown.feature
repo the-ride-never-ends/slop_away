@@ -18,7 +18,7 @@ Feature: Markdown extraction
   Scenario: Inline code produces no findings
     When check_text runs on "docs/guide.md" with the text:
       """
-      The flag is `--don't-ask`.
+      The prompt prefix is `SYSTEM:` in the old format.
       """
     Then check_text returns no findings
 
@@ -48,23 +48,23 @@ Feature: Markdown extraction
       """
       | Option | Meaning |
       |--------|---------|
-      | quiet  | Don't print progress |
+      | quiet  | You must not print progress |
       """
-    Then check_text returns no finding with code "STE004"
+    Then check_text returns no finding with code "INJ001"
 
   @markdown_06
   Scenario: An HTML comment is skipped by prose rules
     When check_text runs on "docs/guide.md" with the text:
       """
-      <!-- The parser doesn't stop here. -->
+      <!-- It is worth noting that the parser stops here. -->
       The tool reads the file.
       """
-    Then check_text returns no finding with code "STE004"
+    Then check_text returns no finding with code "VRB001"
 
   @markdown_07
   Scenario: Link text is checked as prose
     When check_text runs on "docs/guide.md" with the text:
       """
-      Read [what you shouldn't do](https://example.com/rules).
+      Read [you must follow these rules](https://example.com/rules).
       """
-    Then check_text returns a finding with code "STE004"
+    Then check_text returns a finding with code "INJ001"
