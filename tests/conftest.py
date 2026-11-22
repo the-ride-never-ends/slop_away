@@ -6,7 +6,7 @@ import pytest
 
 from tests.harnesses import ApiHarness, CliHarness
 
-pytest_plugins = ["tests.steps", "tests.package_steps"]
+pytest_plugins = ["tests.steps", "tests.package_steps", "tests.fix_steps"]
 
 
 @pytest.fixture(autouse=True)

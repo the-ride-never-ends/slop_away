@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from importlib.metadata import version
 from pathlib import Path
 
-from slop_away.checks import check_files
+from slop_away.checks import check_files, fix_files
 from slop_away.config import ConfigError, find_root, load_config
 from slop_away.packages import sync_packages
 
@@ -34,6 +34,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     commands.add_parser("sync", help="Download configured rule packages.")
     check = commands.add_parser("check", help="Check Markdown files.")
     check.add_argument("paths", nargs="*", default=["."])
+    check.add_argument("--fix", action="store_true", help="Apply safe fixes.")
+    check.add_argument(
+        "--unsafe-fixes",
+        action="store_true",
+        help="Also apply fixes that can change meaning.",
+    )
     check.add_argument(
         "--output-format", choices=("text", "agent"), default="text"
     )
@@ -47,7 +53,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             sync_packages(config)
             return 0
         paths = [str(Path.cwd() / path) for path in args.paths]
-        findings = check_files(paths, config)
+        findings = (
+            fix_files(paths, config, args.unsafe_fixes)
+            if args.fix or args.unsafe_fixes
+            else check_files(paths, config)
+        )
         for finding in findings:
             location = (
                 f"{finding.path.as_posix()}:{finding.line}:{finding.column}"

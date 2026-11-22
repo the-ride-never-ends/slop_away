@@ -20,8 +20,6 @@ refer to FEATURE_MAP.md.
 
 ## Slice 5: Fixes
 
-- [ ] T023 2026-11-21: Safe fixes with `--fix`. Tags: @fix_01 @fix_04 @fix_05 @fix_06
-- [ ] T024 2026-11-21: Unsafe fixes with `--unsafe-fixes`. Tags: @fix_02 @fix_03
 
 ## Slice 6: Adoption
 
@@ -70,3 +68,5 @@ refer to FEATURE_MAP.md.
 - [x] T020 2026-11-21: `slop_away sync` and the package cache. Tags: @sync_01 @sync_02 @sync_03
 - [x] T021 2026-11-21: Load Vale YAML rules of types existence, substitution, occurrence, and sequence. Tags: @ait_01 @ait_02 @ait_03 @ait_04 @ait_05 @ait_06 @ait_07 @ait_08
 - [x] T022 2026-11-21: The `slop_away-sync` pre-commit hook. Tags: @precommit_03
+- [x] T023 2026-11-21: Safe fixes with `--fix`. Tags: @fix_01 @fix_04 @fix_05 @fix_06
+- [x] T024 2026-11-21: Unsafe fixes with `--unsafe-fixes`. Tags: @fix_02 @fix_03
