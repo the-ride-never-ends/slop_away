@@ -1,0 +1,5 @@
+extends: sequence
+message: Avoid seamless before a noun.
+tokens:
+  - pattern: seamless
+  - tag: NN

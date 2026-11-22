@@ -1,0 +1,12 @@
+{
+  "documents": {
+    "bad/AGENTS.md": "AGENTS.md",
+    "bad/CHANGELOG.md": "CHANGELOG.md",
+    "bad/FEATURE_MAP.md": "FEATURE_MAP.md",
+    "bad/MVP.md": "MVP.md",
+    "bad/ROADMAP.md": "ROADMAP.md",
+    "bad/TODO.md": "TODO.md",
+    "good/DESIGN.md": "DESIGN.md"
+  },
+  "revision": "baa9e8c21a909c050e35ba3f6bc7dd0aacbbec1f"
+}

@@ -6,6 +6,57 @@ Headers will be commit hashes.
 
 ## [Unreleased]
 
+### Changed
+- Pin generated checks to commit `091ebf22b9f7e479a1fd10ad0d2497b306500998`.
+  New project setups use the validated readability scorer.
+
+## [091ebf22b9f7e479a1fd10ad0d2497b306500998]
+
+### Added
+- Add the Slice 9 corpus harness, property tests, differential tests,
+  and repository self-check coverage.
+
+### Decisions
+- Keep protected documents unchanged. Copy source documents into the
+  validation corpus and pin expected native rule codes in a manifest.
+- Keep deliberately failing corpus inputs out of the repository self-check.
+  Use a baseline for existing documentation debt, with all native groups
+  enabled. Corpus checks still read raw findings without baseline filtering.
+- Store automatic fix drafts separately from the clean fixed examples.
+  The drafts remain available for the owner to review by hand.
+- Use Hypothesis for the five stated properties. Use textstat and pinned
+  Vale 3.28.1 as independent differential references.
+- Replace syllapy with CMU pronunciations for known words and English
+  hyphenation patterns for unknown words. Use words with letters and remove punctuation. Ignore numeric-only tokens. Count sentence regions
+  with at least three words, with a minimum count of one per scored section.
+- Add the public `grade_sections` API for uncapped section grades and their
+  normalized prose. Preserve Markdown exclusions and Decimal limit checks.
+- Pin the textstat reference to the same CMU data edition. The score,
+  word-count, and sentence-count implementations remain independent.
+  This prevents dictionary-edition differences from changing the comparison.
+- Give Vale the same eligible source spans as the project, with original
+  source line endings. This excludes tables, code, comments, URLs, and
+  instruction files from package comparisons as required by project policy.
+- Install checksum-pinned Vale before tests, with no conditional skips.
+  Prepare reference data in the virtual environment, outside the repository.
+- T035 asks for owner hand cleanup, while corpus_02 requires clean fixed
+  documents. Keep automatic drafts separate and leave T035 open for that
+  review. Clean fixed examples use manual edits to copied documents.
+
+### Validation
+- All 792 tests pass. Style and type checks pass.
+- Poetry metadata checks and reference setup pass.
+- Add 9 bad inputs, 8 clean fixed examples, and 2 clean source examples.
+  Keep 9 automatic drafts and a report of their remaining findings.
+- Compare 44 eligible sections against textstat within 0.5 grade. Compare
+  all corpus documents against Vale for four authored rule types.
+- Exercise all five stated properties with Hypothesis, including fresh
+  subprocess input checks. No reference test skips are conditional.
+- Check the latest authored repository commit message as well as the docs.
+  CI fetches two commit levels so this also works on a pull-request merge.
+
+## [60ecc0803d1f4dd329e53e1aadcd02c6c632a6c7]
+
 ### Added
 - Add the Slice 8 project initializer and packaged Bash hooks for
   PostToolUse, Stop, and PreToolUse. Add the `guard` command for shell input.

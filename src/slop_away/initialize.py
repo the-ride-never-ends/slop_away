@@ -10,7 +10,7 @@ import yaml  # type: ignore[import-untyped]
 from slop_away.storage import write_text
 
 SLOP_REPO = "https://github.com/the-ride-never-ends/slop_away"
-SLOP_REV = "627bbfcafa1f1de06ca05a5786235c1fc7501b20"
+SLOP_REV = "091ebf22b9f7e479a1fd10ad0d2497b306500998"
 REPOSITORIES: list[dict[str, Any]] = [
     {
         "repo": SLOP_REPO,
