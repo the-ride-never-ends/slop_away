@@ -10,6 +10,8 @@ from pathlib import Path
 from slop_away.baseline import Baseline, load_baseline, write_baseline
 from slop_away.checks import check_files, fix_files
 from slop_away.config import ConfigError, find_root, load_config
+from slop_away.guard import guard_command
+from slop_away.initialize import init_project
 from slop_away.messages import check_message
 from slop_away.output import render_findings
 from slop_away.packages import sync_packages
@@ -35,6 +37,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     commands = parser.add_subparsers(dest="command")
     commands.add_parser("sync", help="Download configured rule packages.")
+    setup = commands.add_parser(
+        "init", help="Prepare project checks and hooks."
+    )
+    for part in ("config", "pre-commit", "ci", "hooks"):
+        setup.add_argument(f"--skip-{part}", action="store_true")
+    guard = commands.add_parser(
+        "guard", help="Check a shell command for skipped commit hooks."
+    )
+    guard.add_argument("shell_command")
     check = commands.add_parser("check", help="Check Markdown files.")
     check.add_argument("paths", nargs="*")
     check.add_argument(
@@ -61,6 +72,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.print_help()
         return 0
     try:
+        if args.command == "init":
+            init_project(
+                Path.cwd(),
+                skip_config=args.skip_config,
+                skip_pre_commit=args.skip_pre_commit,
+                skip_ci=args.skip_ci,
+                skip_hooks=args.skip_hooks,
+            )
+            return 0
+        if args.command == "guard":
+            guard_command(args.shell_command)
+            return 0
         config = load_config(find_root(Path.cwd()))
         if args.command == "sync":
             sync_packages(config)

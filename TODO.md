@@ -29,8 +29,6 @@ refer to FEATURE_MAP.md.
 
 ## Slice 8: Agent hooks and init
 
-- [ ] T030 2026-11-21: The hook test harness and the bash hook scripts for PostToolUse, Stop, and PreToolUse. Tags: @hooks_01 @hooks_02 @hooks_03 @hooks_04 @hooks_05 @hooks_06 @hooks_07
-- [ ] T031 2026-11-21: `slop_away init`. Tags: @init_01 @init_02 @init_03 @init_04 @init_05 @init_06 @init_07
 
 ## Slice 9: Validation
 
@@ -70,3 +68,5 @@ refer to FEATURE_MAP.md.
 - [x] T027 2026-11-21: `json` and `github` output formats. Tags: @output_04 @output_05
 - [x] T028 2026-11-21: MSG rules and `check --commit-msg PATH`. Tags: @msg_01 @msg_02 @msg_03 @msg_04 @msg_05 @msg_06
 - [x] T029 2026-11-21: The `slop_away-msg` pre-commit hook at the commit-msg stage. Tags: @precommit_04
+- [x] T030 2026-11-21: The hook test harness and the bash hook scripts for PostToolUse, Stop, and PreToolUse. Tags: @hooks_01 @hooks_02 @hooks_03 @hooks_04 @hooks_05 @hooks_06 @hooks_07
+- [x] T031 2026-11-21: `slop_away init`. Tags: @init_01 @init_02 @init_03 @init_04 @init_05 @init_06 @init_07

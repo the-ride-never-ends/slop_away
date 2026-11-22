@@ -1,0 +1,3 @@
+# Native rule groups are enabled by default.
+# Add package ZIP URLs before running slop_away sync.
+packages = []

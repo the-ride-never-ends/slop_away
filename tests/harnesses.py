@@ -1,5 +1,6 @@
 """Supply API and command test tools."""
 
+import json
 import os
 import subprocess
 import sysconfig
@@ -36,12 +37,13 @@ class CliHarness:
     environment: dict[str, str] = field(default_factory=dict)
 
     def run(
-        self, arguments: Sequence[str]
+        self, arguments: Sequence[str], input_text: str | None = None
     ) -> subprocess.CompletedProcess[str]:
         """Run one command.
 
         Args:
             arguments: The command and its arguments.
+            input_text: Optional command input.
 
         Returns:
             The exit code and output.
@@ -61,6 +63,7 @@ class CliHarness:
             arguments,
             cwd=self.root,
             env=environment,
+            input=input_text,
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -113,3 +116,22 @@ class GitHarness(CliHarness):
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(text, encoding="utf-8")
         self.run(["git", "add", path]).check_returncode()
+
+
+class HookHarness(CliHarness):
+    """Run shipped hook scripts with event input."""
+
+    def event(
+        self, script: str, payload: dict
+    ) -> subprocess.CompletedProcess[str]:
+        """Run a hook event.
+
+        Args:
+            script: The post_edit, stop, or pre_bash script name.
+            payload: The event fields.
+
+        Returns:
+            The hook exit code and output.
+        """
+        path = self.root / ".claude" / "hooks" / f"slop_away_{script}.sh"
+        return self.run(["bash", str(path)], json.dumps(payload))

@@ -5,17 +5,19 @@ import tempfile
 from pathlib import Path
 
 
-def write_text(path: Path, text: str) -> None:
+def write_text(path: Path, text: str, mode: int | None = None) -> None:
     """Replace a text file.
 
     Args:
         path: The destination file.
         text: The new UTF-8 source text.
+        mode: New permissions, or None to retain existing permissions.
 
     Raises:
         OSError: The file cannot be written or replaced.
     """
-    mode = path.stat().st_mode if path.exists() else None
+    if mode is None and path.exists():
+        mode = path.stat().st_mode
     temporary: Path | None = None
     try:
         with tempfile.NamedTemporaryFile(
