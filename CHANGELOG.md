@@ -7,6 +7,47 @@ Headers will be commit hashes.
 ## [Unreleased]
 
 ### Added
+- Add the Slice 3 parser interface, STE001 to STE007, and the terminology
+  glossary in the project config.
+- Keep reference link identifiers out of prose only when their link
+  definitions exist. Keep unresolved identifiers as visible text.
+
+### Decisions
+- Install the small English model as a pinned wheel dependency. Load the
+  model only when STE checks need it. Checks do not download models.
+- Set the supported Python range to `>=3.14,<3.15`, in line with the
+  specified Python 3.14 runtime and spaCy dependency limits.
+- Keep spaCy types behind the parser interface. Preserve source offsets
+  when removing Markdown markers for language analysis.
+- Use the model's word classes and dependency annotations for grammar
+  decisions. Normalize curly apostrophes and line breaks for analysis.
+- Use the 20-word limit for numbered steps and sentences that start with
+  an imperative verb. Use the 25-word limit for other sentences.
+- Count sentences within each Markdown paragraph or list paragraph.
+  Do not apply the paragraph sentence limit to headings.
+- Check simple passive constructions with STE003. Check perfect and
+  progressive constructions with STE005. Permit simple modal forms.
+- Distinguish possessive apostrophes from contracted auxiliary verbs.
+- Count consecutive common and proper nouns for STE006. Punctuation and
+  other parts of speech end a noun cluster.
+- Match glossary synonyms as complete terms without regard to case.
+  Require explicit glossary entries for plural and other word forms.
+- Reject empty, duplicate, and conflicting glossary terms. Keep the
+  glossary global; profiles can select or ignore STE007 for a file.
+
+### Validation
+- All 336 tests pass on Python 3.14.4, including every Slice 3 scenario.
+- Tests check exact sentence and paragraph limits, grammar cases, source
+  locations, glossary validation, rule selection, and instruction files.
+- A fresh CLI process runs the installed model with network access
+  blocked. spaCy 3.8.18 and model `en_core_web_sm` 3.8.0 are installed.
+- Pre-commit, Python style and type checks, and Poetry validation pass.
+  The wheel and source archive build.
+- Move T016 to T019 to Done. Keep the protected document set unchanged.
+
+## [42ca5dc67b9e0efd7e62fe5b1808524cd245d2b3]
+
+### Added
 - Add the Slice 2 phrase, word budget, repeated sentence, and readability
   checks. Add rule settings for files that match a profile glob.
 

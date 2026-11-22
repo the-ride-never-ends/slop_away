@@ -9,6 +9,7 @@ from slop_away.injection import scan_injection
 from slop_away.markdown import parse_document
 from slop_away.readability import scan_readability
 from slop_away.selection import select_files
+from slop_away.ste import scan_ste
 from slop_away.verbosity import scan_verbosity
 
 
@@ -32,6 +33,7 @@ def _check(
     if path.name not in settings.instruction_files:
         findings.extend(scan_verbosity(text, path, settings, document, seen))
         findings.extend(scan_readability(text, path, settings, document))
+        findings.extend(scan_ste(text, path, settings, document))
     return sorted(
         findings, key=lambda item: (item.line, item.column, item.code)
     )
