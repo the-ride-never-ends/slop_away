@@ -316,6 +316,8 @@ def load_rules(config: Config) -> tuple[Rule, ...]:
     for profile in config.profiles.values():
         selectors.extend(profile.get("select", []))
         selectors.extend(profile.get("ignore", []))
+    for ignored in config.per_file_ignores.values():
+        selectors.extend(ignored)
     for selector in selectors:
         if "." in selector and selector not in codes:
             raise PackageError(f"Unknown package rule selector {selector!r}.")

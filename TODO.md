@@ -23,9 +23,6 @@ refer to FEATURE_MAP.md.
 
 ## Slice 6: Adoption
 
-- [ ] T025 2026-11-21: Baseline file and `check --write-baseline`. Tags: @baseline_01 @baseline_02 @baseline_03 @baseline_04 @baseline_05
-- [ ] T026 2026-11-21: `per-file-ignores`, with inline suppression comments having no effect. Tags: @config_09 @config_10
-- [ ] T027 2026-11-21: `json` and `github` output formats. Tags: @output_04 @output_05
 
 ## Slice 7: Commit messages
 
@@ -70,3 +67,6 @@ refer to FEATURE_MAP.md.
 - [x] T022 2026-11-21: The `slop_away-sync` pre-commit hook. Tags: @precommit_03
 - [x] T023 2026-11-21: Safe fixes with `--fix`. Tags: @fix_01 @fix_04 @fix_05 @fix_06
 - [x] T024 2026-11-21: Unsafe fixes with `--unsafe-fixes`. Tags: @fix_02 @fix_03
+- [x] T025 2026-11-21: Baseline file and `check --write-baseline`. Tags: @baseline_01 @baseline_02 @baseline_03 @baseline_04 @baseline_05
+- [x] T026 2026-11-21: `per-file-ignores`, with inline suppression comments having no effect. Tags: @config_09 @config_10
+- [x] T027 2026-11-21: `json` and `github` output formats. Tags: @output_04 @output_05

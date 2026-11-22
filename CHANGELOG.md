@@ -7,6 +7,42 @@ Headers will be commit hashes.
 ## [Unreleased]
 
 ### Added
+- Add the Slice 6 baseline API, `--write-baseline`, per-file ignores,
+  and JSON and GitHub annotation output.
+
+### Decisions
+- Store baseline data in `slop_away.baseline.json` at the project root.
+  Use version 1 with a sorted, unique list of finding fingerprints.
+  Reject malformed records and unsupported versions. A missing baseline
+  is empty. An invalid baseline is an error during normal checks.
+- Keep Python checks as raw finding APIs. The CLI removes matching
+  baseline findings from its report and exit status. Baselines match
+  code, project-relative path, and normalized context, without locations.
+- `--write-baseline` replaces the snapshot with all findings from the
+  selected files and exits zero. It does not merge old entries. It can
+  replace an invalid baseline. With fix options, record remaining findings.
+- Load a baseline before normal fix runs. Fixes still apply to baselined
+  findings. Validate a new snapshot before replacing its file atomically.
+- Normalize absolute Python check paths to project-relative paths so
+  API and CLI fingerprints agree.
+- Add all matching per-file ignores after profiles. Use project-relative
+  glob matching, as for profiles. An ignore cannot enable a rule.
+- JSON output is an array with every public finding field. Paths use POSIX
+  separators. Empty JSON output is `[]`; empty text output has no lines.
+- GitHub output uses error annotations with a rule-code title. Escape
+  workflow command data and properties. Keep errors on stderr.
+- No new dependencies are needed for this slice.
+
+### Validation
+- All 564 tests pass, including all Slice 6 feature scenarios.
+- Ruff, mypy, Poetry lock checks, and hook manifest checks pass.
+- Test baseline context matching, refreshes, malformed records, raw API
+  findings, fix write protection, ignore precedence, package selectors,
+  JSON fields, and GitHub annotation escaping.
+
+## [67afae2cdb20a281f6e442ec60dda3d5f160c590]
+
+### Added
 - Add the Slice 5 fix API and the `--fix` and `--unsafe-fixes` options.
 
 ### Decisions

@@ -1,7 +1,5 @@
 """Check project Markdown files."""
 
-import os
-import tempfile
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -16,6 +14,7 @@ from slop_away.readability import scan_readability
 from slop_away.rule_schema import Rule
 from slop_away.selection import select_files
 from slop_away.ste import scan_ste
+from slop_away.storage import write_text
 from slop_away.verbosity import scan_verbosity
 
 
@@ -38,6 +37,8 @@ def _check(
     Returns:
         Findings in source order.
     """
+    if path.is_absolute():
+        path = path.relative_to(config.root)
     settings = config.for_path(path)
     document = parse_document(text)
     findings = scan_injection(text, path, settings, document)
@@ -133,20 +134,5 @@ def fix_files(
         if changed != source:
             pending.append((path, changed))
     for path, changed in pending:
-        temporary: Path | None = None
-        try:
-            with tempfile.NamedTemporaryFile(
-                mode="w",
-                encoding="utf-8",
-                newline="",
-                dir=path.parent,
-                delete=False,
-            ) as stream:
-                temporary = Path(stream.name)
-                stream.write(changed)
-            temporary.chmod(path.stat().st_mode)
-            os.replace(temporary, path)
-        finally:
-            if temporary is not None:
-                temporary.unlink(missing_ok=True)
+        write_text(path, changed)
     return findings

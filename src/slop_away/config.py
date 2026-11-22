@@ -193,6 +193,25 @@ def _glossary(value: Any) -> None:
             banned.add(normalized)
 
 
+def _ignores(value: Any, packages: set[str]) -> None:
+    """Check per-file rule ignores.
+
+    Args:
+        value: The pattern and selector table.
+        packages: The configured package names.
+
+    Raises:
+        ConfigError: A path pattern or selector is invalid.
+    """
+    if not isinstance(value, dict):
+        raise ConfigError("per-file-ignores: expected a table.")
+    for pattern, selectors in value.items():
+        if not isinstance(pattern, str):
+            raise ConfigError("per-file-ignores: expected string patterns.")
+        _pattern(pattern, "per-file-ignores")
+        _selectors(selectors, f"per-file-ignores.{pattern}", packages)
+
+
 @dataclass
 class Config:
     """Hold the project settings."""
@@ -216,6 +235,7 @@ class Config:
     max_grade: int | float = 10
     word_budget: int | None = None
     profiles: dict[str, dict[str, Any]] = field(default_factory=dict)
+    per_file_ignores: dict[str, list[str]] = field(default_factory=dict)
     glossary: dict[str, list[str]] = field(default_factory=dict)
     packages: list[str] = field(default_factory=list)
     root: Path = field(default_factory=Path.cwd, compare=False, repr=False)
@@ -260,6 +280,7 @@ class Config:
         _grade(self.max_grade, "max-grade")
         _budget(self.word_budget, "word-budget")
         _profiles(self.profiles, names)
+        _ignores(self.per_file_ignores, names)
         _glossary(self.glossary)
 
     def for_path(self, path: str | Path) -> Config:
@@ -269,7 +290,7 @@ class Config:
             path: The document path.
 
         Returns:
-            Settings with all matching profiles applied.
+            Settings with matching profiles and per-file ignores applied.
 
         Raises:
             ValueError: An absolute path is outside the project.
@@ -286,7 +307,17 @@ class Config:
                         for key, value in profile.items()
                     }
                 )
-        return replace(self, profiles={}, **settings) if settings else self
+        ignored = list(settings.get("ignore", self.ignore))
+        for pattern, selectors in self.per_file_ignores.items():
+            if PurePosixPath(relative.as_posix()).full_match(pattern):
+                ignored.extend(selectors)
+        if ignored != settings.get("ignore", self.ignore):
+            settings["ignore"] = list(dict.fromkeys(ignored))
+        return (
+            replace(self, profiles={}, per_file_ignores={}, **settings)
+            if settings
+            else self
+        )
 
     def enabled(self, code: str) -> bool:
         """Check whether a rule is selected.
@@ -390,6 +421,7 @@ def load_config(root: str | Path) -> Config:
         "max-grade",
         "word-budget",
         "profiles",
+        "per-file-ignores",
         "glossary",
         "packages",
     }

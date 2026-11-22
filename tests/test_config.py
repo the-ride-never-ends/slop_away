@@ -60,3 +60,18 @@ def test_config_11():
 )
 def test_config_08():
     """GIVEN the feature setup WHEN the action runs THEN check its result."""
+
+
+@scenario(
+    "features/config.feature",
+    "per-file-ignores removes rules for matching files",
+)
+def test_config_09():
+    """GIVEN the feature setup WHEN the action runs THEN check its result."""
+
+
+@scenario(
+    "features/config.feature", "An inline suppression comment has no effect"
+)
+def test_config_10():
+    """GIVEN the feature setup WHEN the action runs THEN check its result."""
