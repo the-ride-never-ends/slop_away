@@ -3,8 +3,10 @@
 import html
 import re
 from dataclasses import dataclass
+from typing import Any
 
 from markdown_it import MarkdownIt
+from markdown_it.common.utils import normalizeReference
 from markdown_it.helpers import parseLinkDestination, parseLinkTitle
 from markdown_it.token import Token
 from mdit_py_plugins.front_matter import front_matter_plugin
@@ -36,6 +38,7 @@ class Block:
     level: int
     offset: int
     prose: Projection
+    procedure: bool = False
 
 
 @dataclass(frozen=True)
@@ -85,13 +88,17 @@ def _project(text: str, start: int = 0) -> Projection:
     return Projection("".join(characters), tuple(offsets))
 
 
-def _destinations(characters: list[str]) -> None:
+def _destinations(characters: list[str], references: set[str]) -> None:
     """Exclude link destinations.
 
     Args:
         characters: The source characters.
+        references: Defined reference labels.
     """
     source = "".join(characters)
+    for match in re.finditer(r"\]\[(?P<label>[^\]]*)\]", source):
+        if normalizeReference(match.group("label")) in references:
+            _mask(characters, match.start() + 1, match.end())
     for match in re.finditer(r"\]\(", source):
         start = match.end()
         while start < len(source) and source[start].isspace():
@@ -142,13 +149,16 @@ def _blocks(
     """
     result = []
     depth = 0
+    ordered = 0
     kind = "paragraph"
     level = 0
     for token in tokens:
         if token.type in {"bullet_list_open", "ordered_list_open"}:
             depth += 1
+            ordered += int(token.type == "ordered_list_open")
         elif token.type in {"bullet_list_close", "ordered_list_close"}:
             depth -= 1
+            ordered -= int(token.type == "ordered_list_close")
         elif token.type == "paragraph_open":
             kind, level = ("list" if depth else "paragraph"), 0
         elif token.type == "heading_open":
@@ -177,6 +187,7 @@ def _blocks(
                 level if block_kind == "heading" else 0,
                 start,
                 _project("".join(visible), start),
+                procedure=ordered > 0,
             )
         )
     return tuple(result)
@@ -192,7 +203,8 @@ def parse_document(text: str) -> Document:
         Visible text and HTML comments with source offsets.
     """
     parser = MarkdownIt("gfm-like").use(front_matter_plugin)
-    tokens = parser.parse(text)
+    environment: dict[str, Any] = {}
+    tokens = parser.parse(text, environment)
     starts = [0] + [match.end() for match in re.finditer(r"\r\n|\r|\n", text)]
     if starts[-1] != len(text):
         starts.append(len(text))
@@ -217,7 +229,7 @@ def parse_document(text: str) -> Document:
     for match in COMMENT.finditer("".join(characters)):
         comments.append(_comment(match.group(), match.start()))
         _mask(characters, match.start(), match.end())
-    _destinations(characters)
+    _destinations(characters, set(environment.get("references", {})))
     for match in TAG.finditer("".join(characters)):
         _mask(characters, match.start(), match.end())
     source = "".join(characters)

@@ -1,0 +1,150 @@
+"""Describe English prose through a parser interface."""
+
+from dataclasses import dataclass
+from functools import cache
+from string import punctuation
+from typing import TYPE_CHECKING, Protocol
+
+from slop_away.markdown import Projection
+from slop_away.text import word_matches
+
+if TYPE_CHECKING:
+    from spacy.language import Language
+
+
+@dataclass(frozen=True)
+class ParsedToken:
+    """Hold a word or punctuation mark with language annotations."""
+
+    text: str
+    lemma: str
+    pos: str
+    tag: str
+    dependency: str
+    index: int
+    head: int
+    offset: int
+    end: int
+
+
+@dataclass(frozen=True)
+class Sentence:
+    """Hold sentence text and its language annotations."""
+
+    prose: Projection
+    tokens: tuple[ParsedToken, ...]
+
+
+class Parser(Protocol):
+    """Supply sentence and word annotations."""
+
+    def parse(self, projection: Projection) -> tuple[Sentence, ...]:
+        """Parse English prose.
+
+        Args:
+            projection: The prose with source offsets.
+
+        Returns:
+            Sentences and their word annotations.
+        """
+        ...
+
+
+@cache
+def _model() -> Language:
+    """Get the installed English language model.
+
+    Returns:
+        The English language model.
+
+    Raises:
+        OSError: The required model is not installed.
+    """
+    import spacy
+
+    return spacy.load("en_core_web_sm", exclude=["ner"])
+
+
+def _plain(projection: Projection) -> Projection:
+    """Prepare prose for language analysis.
+
+    Args:
+        projection: The Markdown prose with source offsets.
+
+    Returns:
+        Prose text with its source offsets.
+    """
+    characters: list[str] = []
+    offsets: list[int] = []
+    index = 0
+    while index < len(projection.text):
+        char = projection.text[index]
+        if (
+            char == "\\"
+            and index + 1 < len(projection.text)
+            and projection.text[index + 1] in punctuation
+        ):
+            index += 1
+            char = projection.text[index]
+        elif char in "*_~":
+            index += 1
+            continue
+        elif char in "[]":
+            char = " "
+        if char.isspace():
+            char = " "
+            if characters and characters[-1] == " ":
+                index += 1
+                continue
+        characters.append("'" if char == "’" else char)
+        offsets.append(projection.offsets[index])
+        index += 1
+    return Projection("".join(characters), tuple(offsets))
+
+
+class SpacyParser:
+    """Parse English prose with the installed language model."""
+
+    def parse(self, projection: Projection) -> tuple[Sentence, ...]:
+        """Parse English prose.
+
+        Args:
+            projection: The prose with source offsets.
+
+        Returns:
+            Sentences and their word annotations.
+        """
+        plain = _plain(projection)
+        if not word_matches(plain.text):
+            return ()
+        document = _model()(plain.text)
+        sentences = []
+        for span in document.sents:
+            start, end = span.start_char, span.end_char
+            while start < end and plain.text[start].isspace():
+                start += 1
+            while end > start and plain.text[end - 1].isspace():
+                end -= 1
+            prose = Projection(plain.text[start:end], plain.offsets[start:end])
+            if not word_matches(prose.text):
+                continue
+            tokens = tuple(
+                ParsedToken(
+                    token.text,
+                    token.lemma_,
+                    token.pos_,
+                    token.tag_,
+                    token.dep_,
+                    token.i,
+                    token.head.i,
+                    plain.offsets[token.idx],
+                    plain.offsets[token.idx + len(token.text) - 1] + 1,
+                )
+                for token in span
+                if not token.is_space
+            )
+            sentences.append(Sentence(prose, tokens))
+        return tuple(sentences)
+
+
+PARSER: Parser = SpacyParser()

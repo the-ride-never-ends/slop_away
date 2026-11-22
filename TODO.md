@@ -14,10 +14,6 @@ refer to FEATURE_MAP.md.
 
 ## Slice 3: STE subset
 
-- [ ] T016 2026-11-21: Parser interface backed by the spaCy small English model, with the model wheel pinned as a dependency. Tags: none
-- [ ] T017 2026-11-21: Procedure detection, STE001, and STE002. Tags: @ste_01 @ste_02 @ste_03 @ste_04
-- [ ] T018 2026-11-21: STE003 to STE006. Tags: @ste_05 @ste_06 @ste_07 @ste_08
-- [ ] T019 2026-11-21: STE007 and the config glossary. Tags: @ste_09
 
 ## Slice 4: Vale-compatible rules
 
@@ -70,3 +66,7 @@ refer to FEATURE_MAP.md.
 - [x] T013 2026-11-21: VRB rules, and HTML comments skipped by prose rules. Tags: @vrb_01 @vrb_02 @vrb_03 @vrb_04 @vrb_05 @vrb_06 @markdown_06
 - [x] T014 2026-11-21: RDB rule. Tags: @rdb_01 @rdb_02 @rdb_03 @rdb_04
 - [x] T015 2026-11-21: Profiles. Tags: @config_08
+- [x] T016 2026-11-21: Parser interface backed by the spaCy small English model, with the model wheel pinned as a dependency. Tags: none
+- [x] T017 2026-11-21: Procedure detection, STE001, and STE002. Tags: @ste_01 @ste_02 @ste_03 @ste_04
+- [x] T018 2026-11-21: STE003 to STE006. Tags: @ste_05 @ste_06 @ste_07 @ste_08
+- [x] T019 2026-11-21: STE007 and the config glossary. Tags: @ste_09

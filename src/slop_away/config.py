@@ -137,6 +137,49 @@ def _profiles(value: Any) -> None:
             _budget(settings["word-budget"], f"{key}.word-budget")
 
 
+def _glossary(value: Any) -> None:
+    """Check the project terminology.
+
+    Args:
+        value: Preferred terms and their banned synonyms.
+
+    Raises:
+        ConfigError: A term or synonym is invalid or has two meanings.
+    """
+    if not isinstance(value, dict):
+        raise ConfigError("glossary: expected a table.")
+    preferred: set[str] = set()
+    for term, synonyms in value.items():
+        if (
+            not isinstance(term, str)
+            or not term.strip()
+            or term != term.strip()
+            or "\n" in term
+            or "\r" in term
+        ):
+            raise ConfigError("glossary: expected nonempty single-line terms.")
+        normalized = " ".join(term.casefold().split())
+        if normalized in preferred:
+            raise ConfigError(f"glossary: repeated preferred term {term!r}.")
+        preferred.add(normalized)
+        _strings(synonyms, f"glossary.{term}")
+    banned: set[str] = set()
+    for synonyms in value.values():
+        for synonym in synonyms:
+            if (
+                synonym != synonym.strip()
+                or "\n" in synonym
+                or "\r" in synonym
+            ):
+                raise ConfigError("glossary: expected single-line synonyms.")
+            normalized = " ".join(synonym.casefold().split())
+            if normalized in preferred or normalized in banned:
+                raise ConfigError(
+                    f"glossary: conflicting synonym {synonym!r}."
+                )
+            banned.add(normalized)
+
+
 @dataclass
 class Config:
     """Hold the project settings."""
@@ -160,6 +203,7 @@ class Config:
     max_grade: int | float = 10
     word_budget: int | None = None
     profiles: dict[str, dict[str, Any]] = field(default_factory=dict)
+    glossary: dict[str, list[str]] = field(default_factory=dict)
     root: Path = field(default_factory=Path.cwd, compare=False, repr=False)
 
     def __post_init__(self) -> None:
@@ -186,6 +230,7 @@ class Config:
         _grade(self.max_grade, "max-grade")
         _budget(self.word_budget, "word-budget")
         _profiles(self.profiles)
+        _glossary(self.glossary)
 
     def for_path(self, path: str | Path) -> Config:
         """Get settings for a document path.
@@ -301,6 +346,7 @@ def load_config(root: str | Path) -> Config:
         "max-grade",
         "word-budget",
         "profiles",
+        "glossary",
     }
     unknown = settings.keys() - allowed
     if unknown:
