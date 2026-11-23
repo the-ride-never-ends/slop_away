@@ -68,5 +68,17 @@ refer to FEATURE_MAP.md.
 - [ ] T033 2026-11-21: Property tests P1 to P5. Tags: none
 - [ ] T034 2026-11-21: Differential tests X1 and X2. Tags: none
 - [ ] T035 2026-11-21: Add the owner's bad docs to the corpus. Auto-fix them into `fixed/` for the owner to clean by hand. Tags: @corpus_01 @corpus_02
+- [ ] T036 2026-11-22: Default `commit-body-budget` of 150 words. Remove `commit-body-budget` from profiles. Tags: @msg_07 @msg_08
+- [ ] T037 2026-11-22: CI check for the `owner-approved` label on changes to the config, the baseline, CODEOWNERS, or `.github/`. Tags: none
+- [ ] T038 2026-11-22: Draft rewrites of MVP.md, ROADMAP.md, FEATURE_MAP.md, AGENTS.md, and TODO.md for owner review. Remove their fingerprints from the baseline. Tags: @corpus_05
+- [ ] T039 2026-11-22: Replace the corpus CHANGELOG with a 50-line excerpt. Tags: @corpus_01
+
+## Slice 10: Generated tests
+
+- [ ] T040 2026-11-22: Draw the 30 external documents with a recorded seed, and pin them. Tags: none
+- [ ] T041 2026-11-22: Property tests P6 and P7. Tags: none
+- [ ] T042 2026-11-22: Template sentences with known labels, and accuracy test A1. Tags: none
+- [ ] T043 2026-11-22: The Stanza dependency group, accuracy test A2, and its CI job. Tags: none
+- [ ] T044 2026-11-22: The ratchet file for A1 and A2. Tags: none
 
 ## Done

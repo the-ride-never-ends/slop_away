@@ -142,6 +142,53 @@ Done when: the Slice 8 scenarios in FEATURE_MAP.md pass.
   - RDB scores against textstat, within 0.5 grade.
   - Vale-compatible rules against Vale, on the corpus.
 - Self-check: the slop_away repo's own docs and commit messages pass.
+- The repo's own baseline holds only findings in existing CHANGELOG entries.
+- Auto-fix results go to `tests/corpus/drafts/`. The corpus keeps a
+  50-line excerpt of the CHANGELOG as a bad document.
+- A CI check fails when a pull request changes the config, the baseline,
+  CODEOWNERS, or `.github/` without the `owner-approved` label.
+- With no `commit-body-budget` in the config, the body budget is 150
+  words. Profiles do not set `commit-body-budget`.
 
 Done when: the Slice 9 scenarios, properties, and differential tests in
 FEATURE_MAP.md pass.
+
+## Slice 10: Generated tests
+
+- Tier 1, for the mechanical rules: STE001, STE002, STE004, STE007,
+  VRB001 to VRB005, INJ002, INJ003, INJ004 for invisible characters,
+  MSG001, MSG003, and MSG004.
+  - A planted defect gives exactly its code at its line, and no other
+    new finding.
+  - An edit that keeps the meaning gives the same findings.
+- Tier 2 covers the rules that depend on the parser. These are STE003,
+  STE005, STE006, MSG002, INJ001, procedure detection, and INJ004 for
+  directives in comments.
+  - Templates build sentences with known labels. Each rule meets its
+    minimum precision and recall on them.
+  - Stanza parses the external documents. Each rule meets its minimum
+    precision and recall against labels from that parse.
+  - A ratchet file records the measured values. CI fails when a value
+    drops.
+  - Stanza is in its own Poetry dependency group. Its CI job runs on
+    pull requests to `main` and once a week.
+- External documents: 30 files with MIT, Apache-2.0, or BSD licenses,
+  from public GitHub repos with at least 20 stars. A script draws them
+  at random with a recorded seed. `tests/corpus/external/sources.json`
+  pins the repo, commit, path, and license of each file.
+- The draw rejects a file with fewer than 150 words of prose. It also
+  rejects a file where code, tables, or bare links fill more than half
+  of the lines. After a rejection, it draws again with the next seed value.
+
+| Type | Files | From 2021 or earlier | From 2023 or later |
+|------|-------|----------------------|--------------------|
+| README | 6 | 3 | 3 |
+| Contributor or developer guide | 4 | 2 | 2 |
+| CHANGELOG | 4 | 2 | 2 |
+| TODO or roadmap | 4 | 2 | 2 |
+| Design doc or ADR | 4 | 2 | 2 |
+| Agent instruction file | 4 | 0 | 4 |
+| Tutorial or how-to | 4 | 2 | 2 |
+
+Done when: the Slice 10 properties and accuracy tests in FEATURE_MAP.md
+pass. Each minimum comes from the owner.
