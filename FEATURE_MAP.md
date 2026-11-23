@@ -16,6 +16,7 @@ numbers count scenarios within a file. They do not match rule codes.
 | git | Creates a temporary git repo with pre-commit installed. Runs `git commit` and checks whether it succeeds. |
 | hook | Runs a hook script with hook-event JSON on stdin. Checks exit code and stderr. |
 | corpus | Calls `check_files` on every corpus document and compares codes to the expected list. |
+| generator | Builds inputs with Hypothesis or from templates. Compares findings to labels that the construction fixes. |
 
 ## Public API
 
@@ -267,6 +268,8 @@ In pyproject.toml, the same keys go under `[tool.slop_away]`.
 | @msg_04 | A body over its word budget is flagged | 7 |
 | @msg_05 | Trailers such as Co-Authored-By are skipped | 7 |
 | @msg_06 | INJ001 does not apply to commit messages | 7 |
+| @msg_07 | With the default config, a body of 151 words is flagged | 9 |
+| @msg_08 | With the default config, a body of 150 words passes | 9 |
 
 ### F15 Pre-commit hooks
 
@@ -313,7 +316,9 @@ In pyproject.toml, the same keys go under `[tool.slop_away]`.
 
 ## Properties
 
-Hypothesis tests in `tests/properties/`. Slice 9.
+Hypothesis tests in `tests/properties/`. P1 to P5 are Slice 9. P6 and P7
+are Slice 10. P6 and P7 take their documents from the fixed, good, and
+external corpus documents.
 
 | ID | Property | Features |
 |----|----------|----------|
@@ -322,6 +327,8 @@ Hypothesis tests in `tests/properties/`. Slice 9.
 | P3 | Changing text inside a fenced code block never changes the findings | F04 |
 | P4 | Any input either produces findings and exit 0 or 1, or exits 2. The process never crashes | F01, F04 |
 | P5 | Findings are the same for any order of the input files | F05 |
+| P6 | A Tier 1 defect planted in a sentence with no findings gives exactly its code at its line, and no other new finding | F06, F07, F09, F14 |
+| P7 | Rewrapping a paragraph, changing unordered list markers, adding blank lines, or reordering h2 sections keeps the same set of code and fingerprint pairs | F04, F13 |
 
 ## Differential tests
 
@@ -332,3 +339,17 @@ Tests in `tests/differential/`. Slice 9 unless noted.
 | X1 | RDB Flesch-Kincaid grade against textstat on the corpus | 0.5 grade | F08 |
 | X2 | Vale-compatible rule findings against Vale on the corpus | Same codes and lines | F11 |
 | X3 | Current build against the previous release on the corpus | Same findings | Phase 2 |
+
+## Accuracy tests
+
+Tests in `tests/accuracy/`. Slice 10. Each rule has its own minimum.
+`tests/accuracy/ratchet.json` holds the last measured values, and a
+drop below either value fails.
+
+Tier 2 rules: STE003, STE005, STE006, MSG002, INJ001, INJ004 for
+directives in comments, and procedure detection.
+
+| ID | Measures | Labels | Minimum |
+|----|----------|--------|---------|
+| A1 | Precision and recall of each Tier 2 rule on template sentences | Fixed by the template | Set by the owner after the first run |
+| A2 | Precision and recall of each Tier 2 rule on the external documents | Derived from the Stanza parse | Set by the owner after the first run |
