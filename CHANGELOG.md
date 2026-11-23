@@ -6,6 +6,8 @@ Headers will be commit hashes.
 
 ## [Unreleased]
 
+## [f7a849563cefb84315a5b1c2df3e543a53b02d36]
+
 ### Changed
 - Pin generated checks to commit `091ebf22b9f7e479a1fd10ad0d2497b306500998`.
   New project setups use the validated readability scorer.
