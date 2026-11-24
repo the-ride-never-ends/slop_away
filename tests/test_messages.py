@@ -302,7 +302,7 @@ def test_commit_message_cli(message_cli):
         ),
         (
             "Add the parser\n\nOne word.\n",
-            {"profiles": {".git/*": {"commit-body-budget": 0}}},
+            {"profiles": {".git/*": {"word-budget": 100}}},
             ["MSG004"],
         ),
         (

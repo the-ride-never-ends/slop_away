@@ -1,0 +1,37 @@
+{
+  "stanza": "1.15.1",
+  "resources": "1.15.0",
+  "processors": {
+    "tokenize": "ewt_nocharlm",
+    "mwt": "ewt",
+    "pos": "ewt_nocharlm",
+    "lemma": "ewt_nocharlm",
+    "depparse": "ewt_nocharlm"
+  },
+  "files": [
+    {
+      "path": "en/tokenize/ewt_nocharlm.pt",
+      "md5": "d0145aa1ac58887bd51fc56c017278fe"
+    },
+    {
+      "path": "en/mwt/ewt.pt",
+      "md5": "4315978c5d7002e179df725aee751ec5"
+    },
+    {
+      "path": "en/pos/ewt_nocharlm.pt",
+      "md5": "31da311072360b086165291e99b1358a"
+    },
+    {
+      "path": "en/lemma/ewt_nocharlm.pt",
+      "md5": "6e05dfc22768b87fca86b95895d4deef"
+    },
+    {
+      "path": "en/depparse/ewt_nocharlm.pt",
+      "md5": "d4de2f2bfb1df4b508a66e036118aa5b"
+    },
+    {
+      "path": "en/pretrain/conll17.pt",
+      "md5": "c339580492002fb1f759537dfbc57fb2"
+    }
+  ]
+}

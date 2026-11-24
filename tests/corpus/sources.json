@@ -8,5 +8,11 @@
     "bad/TODO.md": "TODO.md",
     "good/DESIGN.md": "DESIGN.md"
   },
-  "revision": "baa9e8c21a909c050e35ba3f6bc7dd0aacbbec1f"
+  "revision": "baa9e8c21a909c050e35ba3f6bc7dd0aacbbec1f",
+  "excerpts": {
+    "bad/CHANGELOG.md": {
+      "first_line": 1,
+      "last_line": 50
+    }
+  }
 }

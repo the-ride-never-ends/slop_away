@@ -6,6 +6,25 @@ Headers will be commit hashes.
 
 ## [Unreleased]
 
+### Changed
+- Add a seeded draw of 30 English source documents. Record candidates,
+  source licenses, hashes, and all rejected draws.
+- Add planted-defect and layout properties from the corpus.
+- Keep injection contexts stable across prose line wraps and list markers.
+  Update two known baseline contexts without adding findings.
+- Reuse source line boundaries when building findings for large documents.
+- Add labeled template cases for seven grammar checks. Record their first
+  measured precision and recall. Keep owner limits unset.
+- Add an optional Stanza group and a separate accuracy CI job.
+  Pin PyTorch for CPU use and pin the English model hashes.
+- Set the default commit body budget to 150 words. Reject body budgets
+  in file profiles. Test both limits with the default config.
+- Limit the bad CHANGELOG corpus document to its first 50 lines.
+- Add a CI check that requires owner review for protected files.
+  Check file renames and reject an incomplete file list.
+- Prepare five drafts for document review and a proposed baseline.
+  Keep the source documents and the active baseline unchanged.
+
 ## [f7a849563cefb84315a5b1c2df3e543a53b02d36]
 
 ### Changed

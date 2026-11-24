@@ -1,0 +1,64 @@
+{
+  "suite": "templates",
+  "cases": 224,
+  "rates": {
+    "STE003": {
+      "tp": 16,
+      "fp": 0,
+      "fn": 0,
+      "tn": 16,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "STE005": {
+      "tp": 16,
+      "fp": 0,
+      "fn": 0,
+      "tn": 16,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "STE006": {
+      "tp": 16,
+      "fp": 0,
+      "fn": 0,
+      "tn": 16,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "MSG002": {
+      "tp": 16,
+      "fp": 0,
+      "fn": 0,
+      "tn": 16,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "INJ001": {
+      "tp": 16,
+      "fp": 0,
+      "fn": 0,
+      "tn": 16,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "INJ004": {
+      "tp": 16,
+      "fp": 0,
+      "fn": 0,
+      "tn": 16,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "procedure": {
+      "tp": 16,
+      "fp": 0,
+      "fn": 0,
+      "tn": 16,
+      "precision": 1.0,
+      "recall": 1.0
+    }
+  },
+  "labels_sha256": "5126b0234a51e15b4c7c0d815397198c4ed56598b52bde3fcb7420d858b30bd1",
+  "sources": []
+}

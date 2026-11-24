@@ -29,7 +29,20 @@ hypothesis = ">=6,<7"
 pytest-cov = ">=7,<8"
 pre-commit = ">=4,<5"
 textstat = ">=0.7,<0.8"
+langdetect = "==1.0.9"
 
+
+[tool.poetry.group.accuracy]
+optional = true
+
+[tool.poetry.group.accuracy.dependencies]
+stanza = "==1.15.1"
+torch = { version = "==2.9.1+cpu", source = "pytorch-cpu" }
+
+[[tool.poetry.source]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -62,6 +75,8 @@ markers = [
     "msg_04: Commit-message feature scenario.",
     "msg_05: Commit-message feature scenario.",
     "msg_06: Commit-message feature scenario.",
+    "msg_07: Commit-message feature scenario.",
+    "msg_08: Commit-message feature scenario.",
     "precommit_04: Commit-message feature scenario.",
 
     "baseline_01: Adoption feature scenario.",

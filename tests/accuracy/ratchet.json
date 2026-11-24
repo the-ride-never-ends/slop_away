@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "templates": {
+    "STE003": {
+      "measured": {
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "minimum": {
+        "precision": null,
+        "recall": null
+      }
+    },
+    "STE005": {
+      "measured": {
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "minimum": {
+        "precision": null,
+        "recall": null
+      }
+    },
+    "STE006": {
+      "measured": {
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "minimum": {
+        "precision": null,
+        "recall": null
+      }
+    },
+    "MSG002": {
+      "measured": {
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "minimum": {
+        "precision": null,
+        "recall": null
+      }
+    },
+    "INJ001": {
+      "measured": {
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "minimum": {
+        "precision": null,
+        "recall": null
+      }
+    },
+    "INJ004": {
+      "measured": {
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "minimum": {
+        "precision": null,
+        "recall": null
+      }
+    },
+    "procedure": {
+      "measured": {
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "minimum": {
+        "precision": null,
+        "recall": null
+      }
+    }
+  },
+  "external": null
+}
