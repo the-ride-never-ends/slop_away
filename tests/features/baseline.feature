@@ -51,3 +51,10 @@ Feature: Baseline
     And a baseline built from the findings of check_text on "docs/a.md" with the text "The tool doesn't run twice."
     When check_text runs on "docs/a.md" with the text "The tool doesn't run three times."
     Then baseline.matches returns False for the finding with code "STE004"
+
+  @baseline_06
+  Scenario: A baselined finding still matches after its list marker changes
+    Given the default config
+    And a baseline built from the findings of check_text on "docs/a.md" with the text "- Never edit generated files."
+    When check_text runs on "docs/a.md" with the text "* Never edit generated files."
+    Then baseline.matches returns True for the finding with code "INJ001"
