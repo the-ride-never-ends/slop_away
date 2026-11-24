@@ -94,6 +94,7 @@ def internal_case(cli, monkeypatch):
         raise RuntimeError("The engine failed.")
 
     monkeypatch.setattr(command, "check_files", fail_check)
+    (cli.root / "a.md").write_text("# Setup\n", encoding="utf-8")
     return ["check"], "The engine failed.", (2, "", True)
 
 

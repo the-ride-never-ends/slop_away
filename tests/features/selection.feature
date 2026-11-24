@@ -66,3 +66,42 @@ Feature: File selection
     Given the default config
     When select_files runs on ["."]
     Then the result does not contain "notes.txt"
+
+  @selection_07
+  Scenario Outline: A file named directly is selected when a setting skips it
+    Given a file "slop_away.toml" containing:
+      """
+      extend-exclude = ["drafts"]
+      """
+    And a file ".gitignore" containing:
+      """
+      docs/sub/
+      """
+    And the config is loaded from the project root
+    When select_files runs on ["<path>"]
+    Then the result contains "<path>"
+
+    Examples:
+      | path          |
+      | drafts/c.md   |
+      | docs/sub/b.md |
+
+  @selection_08
+  Scenario: force_exclude skips a file named directly
+    Given a file "slop_away.toml" containing:
+      """
+      extend-exclude = ["drafts"]
+      """
+    And the config is loaded from the project root
+    When select_files runs with force_exclude on ["drafts/c.md"]
+    Then the result does not contain "drafts/c.md"
+
+  @selection_09
+  Scenario: A directory input still follows the excludes
+    Given a file "slop_away.toml" containing:
+      """
+      extend-exclude = ["drafts"]
+      """
+    And the config is loaded from the project root
+    When select_files runs on ["drafts"]
+    Then the result does not contain "drafts/c.md"

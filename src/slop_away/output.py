@@ -63,4 +63,7 @@ def render_findings(
                 f"col={finding.column},title={_escape(finding.code, True)}"
                 f"::{_escape(finding.message)}"
             )
-    return "\n".join(lines) + ("\n" if lines else "")
+    if lines:
+        return "\n".join(lines) + "\n"
+    else:
+        return ""

@@ -50,6 +50,7 @@ refer to FEATURE_MAP.md.
 
 ## Done
 
+- [x] T047 2026-11-24: Check a file named directly even when an exclude matches it. Add `--force-exclude`, and use it in the pre-commit and post-edit hooks. Report a check that selects no file. Tags: @selection_07 @selection_08 @selection_09 @cli_06 @cli_07 @cli_08
 - [x] T001 2026-11-21: Create the Poetry project: Python 3.14, package `slop_away`, console command `slop_away`. Tags: @cli_01
 - [x] T002 2026-11-21: Add dev dependencies pytest, pytest-bdd, Hypothesis, and pytest-cov. Confirm pytest-bdd runs on Python 3.14. Tags: none
 - [x] T003 2026-11-21: Create `tests/features/`, `tests/properties/`, `tests/differential/`, and the corpus folders `bad/`, `fixed/`, `good/`, with a format for each bad document's expected codes. Tags: none

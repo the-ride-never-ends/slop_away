@@ -9,8 +9,11 @@ from slop_away import Config, select_files
     params=[
         ("", "", ["."], {}, ["a.md", "docs/b.md", "docs/keep.md"]),
         ("*.md\n!a.md", "!keep.md", ["."], {}, ["a.md", "docs/keep.md"]),
-        ("docs/\n!docs/keep.md", "", ["docs/keep.md"], {}, []),
-        ("", "", ["a.md"], {"exclude": ["a.md"]}, []),
+        ("docs/\n!docs/keep.md", "", ["docs/keep.md"], {}, ["docs/keep.md"]),
+        ("docs/\n!docs/keep.md", "", ["docs/keep.md"], {"force": True}, []),
+        ("", "", ["a.md"], {"exclude": ["a.md"]}, ["a.md"]),
+        ("", "", ["a.md"], {"exclude": ["a.md"], "force": True}, []),
+        ("", "", ["docs/b.md"], {"include": ["a.md"]}, ["docs/b.md"]),
         ("", "", ["**/*.md"], {}, ["a.md", "docs/b.md", "docs/keep.md"]),
         ("", "", ["."], {"include": ["a.md"]}, ["a.md"]),
     ]
@@ -18,18 +21,20 @@ from slop_away import Config, select_files
 def path_case(tmp_path, request):
     """GIVEN project patterns WHEN selected THEN return matching paths."""
     root_ignore, nested_ignore, paths, settings, expected = request.param
+    settings = dict(settings)
+    force = settings.pop("force", False)
     (tmp_path / "docs").mkdir()
     for name in ("a.md", "docs/b.md", "docs/keep.md", "note.txt"):
         (tmp_path / name).write_text("", encoding="utf-8")
     (tmp_path / ".gitignore").write_text(root_ignore, encoding="utf-8")
     (tmp_path / "docs/.gitignore").write_text(nested_ignore, encoding="utf-8")
-    return paths, Config(root=tmp_path, **settings), expected
+    return paths, Config(root=tmp_path, **settings), force, expected
 
 
 def test_project_patterns(path_case):
     """GIVEN project patterns WHEN selected THEN return the expected paths."""
-    paths, config, expected = path_case
-    selected = select_files(paths, config)
+    paths, config, force, expected = path_case
+    selected = select_files(paths, config, force)
     actual = [path.relative_to(config.root).as_posix() for path in selected]
     assert actual == expected
 

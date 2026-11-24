@@ -167,6 +167,15 @@ def choose_files(config: Config, paths: str):
     return select_files(ast.literal_eval(paths), config)
 
 
+@when(
+    parsers.parse("select_files runs with force_exclude on {paths}"),
+    target_fixture="selected",
+)
+def choose_files_forced(config: Config, paths: str):
+    """GIVEN project paths WHEN excludes are forced THEN apply them."""
+    return select_files(ast.literal_eval(paths), config, force_exclude=True)
+
+
 @then(parsers.parse('the result contains "{path}"'))
 def has_path(selected: list[Path], tmp_path: Path, path: str):
     """GIVEN selected paths WHEN a file applies THEN include its path."""

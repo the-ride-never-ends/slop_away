@@ -42,3 +42,27 @@ def test_selection_05():
 )
 def test_selection_06():
     """GIVEN the feature setup WHEN the action runs THEN check its result."""
+
+
+@scenario(
+    "features/selection.feature",
+    "A file named directly is selected when a setting skips it",
+)
+def test_selection_07():
+    """GIVEN the feature setup WHEN the action runs THEN check its result."""
+
+
+@scenario(
+    "features/selection.feature",
+    "force_exclude skips a file named directly",
+)
+def test_selection_08():
+    """GIVEN the feature setup WHEN the action runs THEN check its result."""
+
+
+@scenario(
+    "features/selection.feature",
+    "A directory input still follows the excludes",
+)
+def test_selection_09():
+    """GIVEN the feature setup WHEN the action runs THEN check its result."""

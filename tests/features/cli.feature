@@ -40,3 +40,46 @@ Feature: CLI basics
     When I run "slop_away check docs/missing.md"
     Then the exit code is 2
     And stderr contains "docs/missing.md"
+
+  @cli_06
+  Scenario: A check that selects no file says so on stderr
+    Given a file "slop_away.toml" containing:
+      """
+      extend-exclude = ["drafts"]
+      """
+    And a file "drafts/a.md" containing:
+      """
+      You must run the tests first.
+      """
+    When I run "slop_away check drafts"
+    Then the exit code is 0
+    And stdout is empty
+    And stderr contains "No Markdown files to check"
+
+  @cli_07
+  Scenario: --force-exclude skips a named file without a notice
+    Given a file "slop_away.toml" containing:
+      """
+      extend-exclude = ["drafts"]
+      """
+    And a file "drafts/a.md" containing:
+      """
+      You must run the tests first.
+      """
+    When I run "slop_away check --force-exclude drafts/a.md"
+    Then the exit code is 0
+    And stdout is empty
+    And stderr is empty
+
+  @cli_08
+  Scenario: A named file that an exclude matches is checked
+    Given a file "slop_away.toml" containing:
+      """
+      extend-exclude = ["drafts"]
+      """
+    And a file "drafts/a.md" containing:
+      """
+      You must run the tests first.
+      """
+    When I run "slop_away check drafts/a.md"
+    Then the exit code is 1

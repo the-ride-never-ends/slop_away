@@ -26,9 +26,9 @@ The api harness calls these callables. They are the package's public contract.
 |----------|---------|--------|
 | `load_config(root)` | `Config` | `ConfigError` |
 | `Config()` | The default config | |
-| `select_files(paths, config)` | `list[Path]` | |
+| `select_files(paths, config, force_exclude=False)` | `list[Path]` | |
 | `check_text(text, path, config)` | `list[Finding]` | `PackageError` |
-| `check_files(paths, config)` | `list[Finding]` | `PackageError` |
+| `check_files(paths, config, force_exclude=False)` | `list[Finding]` | `PackageError` |
 | `check_message(text, config)` | `list[Finding]` | `PackageError` |
 | `apply_fixes(text, path, config, unsafe)` | `str` | |
 | `Baseline.from_findings(findings)` | `Baseline` | |
@@ -119,6 +119,9 @@ In pyproject.toml, the same keys go under `[tool.slop_away]`.
 | @cli_03 | A file with findings exits 1 | 1 |
 | @cli_04 | An unknown option exits 2 | 1 |
 | @cli_05 | A path that does not exist exits 2 and names the path | 1 |
+| @cli_06 | A check that selects no file exits 0 and says so on stderr | 9 |
+| @cli_07 | `--force-exclude` skips a named file without a notice | 9 |
+| @cli_08 | A named file that an exclude matches is checked | 9 |
 
 ### F02 Config
 
@@ -146,6 +149,9 @@ In pyproject.toml, the same keys go under `[tool.slop_away]`.
 | @selection_04 | `extend-exclude` adds to the default excludes | 1 |
 | @selection_05 | Files listed in .gitignore are skipped | 1 |
 | @selection_06 | Files that are not `.md` are skipped | 1 |
+| @selection_07 | A file named directly is selected when an exclude or .gitignore skips it | 9 |
+| @selection_08 | `force_exclude` skips a file named directly | 9 |
+| @selection_09 | A directory input still follows the excludes | 9 |
 
 ### F04 Markdown extraction
 
