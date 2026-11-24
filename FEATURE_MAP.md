@@ -181,6 +181,7 @@ In pyproject.toml, the same keys go under `[tool.slop_away]`.
 | @inj_06 | INJ004: a directive inside an HTML comment is flagged | 1 |
 | @inj_07 | INJ004: zero-width or other invisible characters are flagged | 1 |
 | @inj_08 | INJ002 to INJ004 apply to agent instruction files | 1 |
+| @inj_09 | INJ001 does not flag a line break inside a sentence | 9 |
 
 ### F07 VRB rules
 
@@ -257,6 +258,7 @@ In pyproject.toml, the same keys go under `[tool.slop_away]`.
 | @baseline_03 | A finding not in the baseline fails the run | 6 |
 | @baseline_04 | A baselined finding still matches after its lines move | 6 |
 | @baseline_05 | Editing a baselined sentence makes its findings new | 6 |
+| @baseline_06 | A baselined finding still matches after its list marker changes | 9 |
 
 ### F14 Commit messages
 
