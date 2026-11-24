@@ -37,6 +37,8 @@ refer to FEATURE_MAP.md.
 - [ ] T037 2026-11-22: CI check for the `owner-approved` label on changes to the config, the baseline, CODEOWNERS, or `.github/`. Tags: none
 - [ ] T038 2026-11-22: Draft rewrites of MVP.md, ROADMAP.md, FEATURE_MAP.md, AGENTS.md, and TODO.md for owner review. Remove their fingerprints from the baseline. Tags: @corpus_05
 - [ ] T039 2026-11-22: Replace the corpus CHANGELOG with a 50-line excerpt. Tags: @corpus_01
+- [ ] T045 2026-11-23: Find directives by sentence, not by line. Tags: @inj_09
+- [ ] T046 2026-11-23: Keep the list marker out of the text that a fingerprint hashes. Tags: @baseline_06
 
 ## Slice 10: Generated tests
 
