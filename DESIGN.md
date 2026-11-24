@@ -21,11 +21,11 @@ check fails. The agent must revise the text before it can continue.
 
 | ID  | Decision | Why |
 |-----|----------|-----|
-| D01 | Private tool, MIT license. Built for the owner's repos first, in a form that can be published later. | Defaults need proof on real repos before other people adopt them. |
+| D01 | Public, general-purpose library under the MIT license. The owner's repos come first. | Defaults need proof on real repos before other people adopt them. |
 | D02 | One CLI in the style of ruff: one command, one config, rule codes, select and ignore. | The owner wants the ruff experience for docs. |
 | D03 | The name is `slop_away` for the package, the command, the `[tool.slop_away]` section, and `slop_away.toml`. | One spelling everywhere. |
 | D04 | Python 3.14. Poetry for development. | Owner's toolchain. spaCy 3.8.16 ships CPython 3.14 wheels. |
-| D05 | Hosted in a private GitHub repo. Installed from git with `uv tool install` or `pipx`. Not on PyPI. | Private tool. Pre-commit fetches hooks with git, so one repo is both the tool and the hook source. |
+| D05 | Hosted in a public GitHub repo. Installed from git with `uv tool install` or `pipx`. Not on PyPI yet. | Pre-commit fetches hooks with git, so one repo is both the tool and the hook source. PyPI waits until the defaults have proof on other repos. |
 
 ## Readers and goals
 
@@ -80,8 +80,9 @@ check fails. The agent must revise the text before it can continue.
 | ID  | Decision | Why |
 |-----|----------|-----|
 | D28 | No inline suppression. Exceptions go only in `per-file-ignores` in the config. | Agents use any escape hatch. Config changes show up in review. |
-| D29 | CODEOWNERS with required human review covers the config and baseline files. | Works for every agent without detecting which commits came from an agent. |
+| D29 | In the slop_away repo, a CI check fails when a pull request changes the config, the baseline, CODEOWNERS, or `.github/` without the `owner-approved` label. Only the owner applies the label. Other projects set up CODEOWNERS by hand. | GitHub does not let an author approve their own pull request, and agents push with the owner's account. The check slows an agent down but cannot stop it. The owner reviews each slice when it is complete. |
 | D30 | Baseline file `slop_away.baseline.json` at the repo root. A finding's fingerprint is its rule code, its file path, and a hash of the normalized sentence or section text. `check --write-baseline` writes the file. `check` reads it when present. Each finding carries its fingerprint, computed when the check runs. | Old findings do not block adoption. Moving lines does not break a match. Editing a sentence makes its findings new. |
+| D52 | The slop_away repo's baseline holds only findings in existing CHANGELOG entries. New entries must pass. The baseline goes away when a new changelog starts at release. | Rewriting history is worse than a failing line. New text still meets the rules. |
 
 ## Output
 
@@ -114,12 +115,17 @@ check fails. The agent must revise the text before it can continue.
 |-----|----------|-----|
 | D38 | Behavior is specified in Gherkin `.feature` files bound to pytest with pytest-bdd. One file per area. Scenario IDs are lowercase tags with an underscore, such as `@inj_03`, which FEATURE_MAP.md and TODO.md reference. Unit scenarios test the public Python API through return values and raised exceptions. End-to-end scenarios test the CLI, hooks, and git through exit codes and output. Each Then step checks one thing. | The specs run as tests. Unit scenarios run fast and fail precisely. End-to-end scenarios cover the integration. pytest-bdd turns tags into pytest markers, so tags must be valid marker names. The lowercase form cannot be confused with rule codes such as INJ003. |
 | D39 | A validation corpus holds bad, fixed, and good documents. Bad documents must produce exactly their expected codes. Fixed and good documents must produce none. | Exact codes also catch new false positives on bad documents. |
-| D40 | Fixed documents are made by auto-fixing bad ones and then cleaning them by hand. The hand cleanup is judged by a cold read, not by the rules. | Fixes judged only by the linter prove only that the linter agrees with itself. Good documents guard against over-flagging. |
+| D40 | Auto-fix results go to `tests/corpus/drafts/`. The owner cleans each document in `fixed/` by hand and judges it by a cold read, not by the rules. This work blocks no slice. | Fixes judged only by the linter prove only that the linter agrees with itself. Good documents guard against over-flagging. One human works on the project, so hand work must not block. |
 | D41 | slop_away lints its own docs and commit messages. They also seed the corpus. | Free test data. A linter whose own docs fail its rules is hard to trust. |
 | D42 | Property tests with Hypothesis: safe fixes are idempotent; baseline fingerprints survive line moves; code-block content never changes findings; the parser never crashes and either succeeds or exits 2; findings do not depend on file order. | These properties hold for all inputs, which example tests cannot cover. |
 | D43 | Differential tests: readability scores against textstat or Vale with a tolerance of 0.5 grade; Vale-compatible rules against Vale on the corpus. Version-to-version differential tests are Phase 2. | Both comparisons have an outside reference. Syllable counting differs between tools, so scores need a tolerance. |
 | D44 | Benchmarking is Phase 2, with pytest-benchmark. Target: under 2 seconds to check one typical Markdown file. | The hooks run on every edit. |
 | D45 | Test stack: pytest, pytest-bdd, Hypothesis, pytest-cov. Other plugins join in the phase that first uses them. | YAGNI. |
+| D53 | Generated tests check for false positives and false negatives in two tiers. Tier 1 covers the mechanical rules with Hypothesis: a planted defect gives exactly its code at its line, and an edit that keeps the meaning gives the same findings. | A fixed corpus can be gamed. An implementation cannot learn generated inputs one by one. Planted defects find misses. Edits that keep the meaning find false alarms without a full answer key. |
+| D54 | Tier 2 covers the rules that depend on the parser. Accuracy tests measure their precision and recall on sentences labeled by construction from templates, and against a second parser on real prose. No human labels any input. | The parser makes errors, so exact checks per example fail at random or push generators toward easy sentences. A measured rate shows the error and can go up over time. One human works on the project. |
+| D55 | Each Tier 2 rule has a minimum precision and recall in FEATURE_MAP.md, and a ratchet file records the last measured values. CI fails when a value drops below either. The precision minimum is higher than the recall minimum. | A false positive blocks a commit and teaches agents to work around the tool. A false negative lets one sentence through. |
+| D56 | Tests that need real prose use 30 external documents with MIT, Apache-2.0, or BSD licenses. A script draws them at random with a recorded seed, by document type and by era. Each document's commit and license are pinned. The rule that rejects a degenerate document is fixed before the draw. | A hand-picked set can favor the rules. Docs by other authors cover more styles than the repo's own docs. A seed makes the draw repeatable. |
+| D57 | The second parser is Stanza. It goes in its own Poetry dependency group, and its CI job runs on pull requests to `main` and once a week, not on every push. | Stanza is trained and built apart from spaCy, so their errors differ. It needs PyTorch, which adds about 2 GB and several minutes. Pushes stay fast, and every merge is still checked. |
 
 ## Documents
 
@@ -138,4 +144,4 @@ check fails. The agent must revise the text before it can continue.
 
 ## Open items
 
-- pytest-bdd 8.1.0 lists Python 3.9 to 3.13 in its classifiers. Fedora builds it for Python 3.14. Confirm it in the first CI run.
+- The minimum precision and recall for each Tier 2 rule. The owner sets them after the first measured run in Slice 10.

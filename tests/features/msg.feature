@@ -48,3 +48,13 @@ Feature: Commit messages
       You must rebase before merging.
       """
     Then check_message returns no finding with code "INJ001"
+
+  @msg_07
+  Scenario: MSG004 flags a body over 150 words by default
+    When check_message runs on a message with a body of 151 words
+    Then check_message returns a finding with code "MSG004"
+
+  @msg_08
+  Scenario: A body of 150 words passes by default
+    When check_message runs on a message with a body of 150 words
+    Then check_message returns no finding with code "MSG004"
