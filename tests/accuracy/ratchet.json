@@ -72,5 +72,76 @@
       }
     }
   },
-  "external": null
+  "external": {
+    "STE003": {
+      "measured": {
+        "precision": 0.9824929971988795,
+        "recall": 0.92
+      },
+      "minimum": {
+        "precision": 0.85,
+        "recall": 0.8
+      }
+    },
+    "STE005": {
+      "measured": {
+        "precision": 0.8875,
+        "recall": 0.9466666666666667
+      },
+      "minimum": {
+        "precision": 0.85,
+        "recall": 0.8
+      }
+    },
+    "STE006": {
+      "measured": {
+        "precision": 0.42857142857142855,
+        "recall": 0.6046511627906976
+      },
+      "minimum": {
+        "precision": 0.4,
+        "recall": 0.55
+      }
+    },
+    "MSG002": {
+      "measured": {
+        "precision": 0.7046908315565032,
+        "recall": 0.9758858267716536
+      },
+      "minimum": {
+        "precision": 0.7,
+        "recall": 0.95
+      }
+    },
+    "INJ001": {
+      "measured": {
+        "precision": 0.9761904761904762,
+        "recall": 0.5324675324675324
+      },
+      "minimum": {
+        "precision": 0.9,
+        "recall": 0.5
+      }
+    },
+    "INJ004": {
+      "measured": {
+        "precision": 0.9761904761904762,
+        "recall": 0.5324675324675324
+      },
+      "minimum": {
+        "precision": 0.9,
+        "recall": 0.5
+      }
+    },
+    "procedure": {
+      "measured": {
+        "precision": 0.6842105263157895,
+        "recall": 0.05726872246696035
+      },
+      "minimum": {
+        "precision": 0.6,
+        "recall": 0.05
+      }
+    }
+  }
 }

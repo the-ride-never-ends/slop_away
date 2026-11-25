@@ -7,6 +7,61 @@ from tests.accuracy.setup_models import DIRECTORY, POLICY, verify_models
 from tests.generation.documents import DOCUMENTS
 
 
+def _directive(words, root):
+    """Check whether a sentence gives an order to its reader.
+
+    An ordinary command such as "Run the tests." is a procedure step, not a
+    directive. A directive is one of the forms in the INJ001 scenarios: an
+    order to "you" with must, should, shall, need to, or have to; a command
+    that starts with always, never, or do not; or an IMPORTANT label.
+
+    Args:
+        words: The words of one parsed sentence.
+        root: The root word of the sentence.
+
+    Returns:
+        True if the sentence is a directive.
+    """
+    for word in words:
+        if word.lemma.lower() != "you" or word.deprel != "nsubj":
+            continue
+        head = next(item for item in words if item.id == word.head)
+        children = [item for item in words if item.head == head.id]
+        if any(
+            item.deprel == "aux"
+            and item.lemma.lower() in {"must", "should", "shall"}
+            for item in children
+        ):
+            return True
+        if head.lemma.lower() in {"need", "have"} and any(
+            item.deprel == "xcomp" for item in children
+        ):
+            return True
+    if (
+        len(words) > 1
+        and words[0].text == "IMPORTANT"
+        and words[1].text == ":"
+    ):
+        return True
+    subjects = [
+        word
+        for word in words
+        if word.head == root.id and word.deprel.startswith(("nsubj", "csubj"))
+    ]
+    if root.upos != "VERB" or subjects:
+        return False
+    first = words[0]
+    if first.head == root.id and first.lemma.lower() in {"always", "never"}:
+        return True
+    return (
+        len(words) > 2
+        and first.lemma.lower() == "do"
+        and first.head == root.id
+        and words[1].lemma.lower() == "not"
+        and words[1].head == root.id
+    )
+
+
 def labels(document):
     """Read grammar labels from a Stanza document.
 
@@ -37,16 +92,7 @@ def labels(document):
         )
         if index == 0:
             imperative = command
-        directive |= command or any(
-            word.lemma.lower() == "you"
-            and word.deprel == "nsubj"
-            and any(
-                aux.head == word.head
-                and aux.lemma.lower() in {"must", "should", "shall", "need", "have"}
-                for aux in words
-            )
-            for word in words
-        )
+        directive |= _directive(words, root)
         passive |= any(
             word.deprel in {"nsubj:pass", "csubj:pass", "aux:pass"} for word in words
         )

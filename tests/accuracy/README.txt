@@ -12,6 +12,12 @@ classes and dependency relations. The reference labels passive voice,
 complex tenses, long noun groups, commands, and reader directives.
 The command label also supplies the expected MSG002 result.
 
+A command such as "Run the tests." is a procedure step, not a reader
+directive. A reader directive has a form from the INJ001 scenarios.
+One form is "you" with must, should, shall, need to, or have to.
+Another is a command that starts with always, never, or do not. The
+last is an IMPORTANT label.
+
 The message comparison checks each source sentence as a message subject.
 The hidden-directive comparison checks it inside an HTML comment.
 The procedure comparison uses sentences of 21 to 25 words. A procedure
