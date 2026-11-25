@@ -136,7 +136,6 @@ def _profiles(value: Any, packages: set[str]) -> None:
         "ignore",
         "max-grade",
         "word-budget",
-        "commit-body-budget",
     }
     for pattern, settings in value.items():
         if not isinstance(pattern, str):
@@ -155,12 +154,6 @@ def _profiles(value: Any, packages: set[str]) -> None:
             _grade(settings["max-grade"], f"{key}.max-grade")
         if "word-budget" in settings:
             _budget(settings["word-budget"], f"{key}.word-budget")
-        if "commit-body-budget" in settings:
-            _budget(
-                settings["commit-body-budget"],
-                f"{key}.commit-body-budget",
-                False,
-            )
 
 
 def _glossary(value: Any) -> None:
@@ -247,7 +240,7 @@ class Config:
     )
     max_grade: int | float = 10
     word_budget: int | None = None
-    commit_body_budget: int = 200
+    commit_body_budget: int = 150
     profiles: dict[str, dict[str, Any]] = field(default_factory=dict)
     per_file_ignores: dict[str, list[str]] = field(default_factory=dict)
     glossary: dict[str, list[str]] = field(default_factory=dict)

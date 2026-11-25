@@ -104,6 +104,34 @@ def _context(projection: Projection, start: int) -> str:
     return source[left:right]
 
 
+def _prose(document: Document) -> Projection:
+    """Get prose with stable paragraph boundaries.
+
+    Args:
+        document: The source document.
+
+    Returns:
+        Prose with source offsets.
+    """
+    characters = list(document.prose.text)
+    indices = {offset: index for index, offset in enumerate(document.prose.offsets)}
+    for block in document.blocks:
+        if not block.prose.offsets:
+            continue
+        start = indices[block.prose.offsets[0]]
+        end = indices[block.prose.offsets[-1]] + 1
+        source = document.prose.text[start:end]
+        right = len(source.rstrip())
+        for index in range(start, start + right):
+            if characters[index] in "\r\n":
+                characters[index] = " "
+        if block.kind == "list":
+            marker = re.match(r"[ \t]*[-*+](?=\s)", source)
+            if marker:
+                characters[start + marker.end() - 1] = "-"
+    return Projection("".join(characters), document.prose.offsets)
+
+
 def scan_injection(
     text: str, path: Path, config: Config, document: Document
 ) -> list[Finding]:
@@ -120,8 +148,9 @@ def scan_injection(
     """
     findings: list[Finding] = []
     instruction = path.name in config.instruction_files
-    for projection in (document.prose, *document.comments):
-        comment = projection is not document.prose
+    prose = _prose(document)
+    for projection in (prose, *document.comments):
+        comment = projection is not prose
         matches: list[tuple[str, int]] = []
         if comment or not instruction:
             code = "INJ004" if comment else "INJ001"

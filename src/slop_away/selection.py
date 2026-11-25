@@ -101,12 +101,19 @@ class _Selection:
                 yield path
 
 
-def select_files(paths: Sequence[str | Path], config: Config) -> list[Path]:
+def select_files(
+    paths: Sequence[str | Path], config: Config, force_exclude: bool = False
+) -> list[Path]:
     """Select Markdown files from project paths.
+
+    A Markdown file named directly is selected even when an exclude, a
+    .gitignore, or the include setting would skip it. Directories and glob
+    matches always follow those settings.
 
     Args:
         paths: Paths or recursive glob patterns relative to the project.
         config: The project settings.
+        force_exclude: Also apply the settings to files named directly.
 
     Returns:
         Sorted, unique absolute paths.
@@ -136,6 +143,14 @@ def select_files(paths: Sequence[str | Path], config: Config) -> list[Path]:
         )
         if not matches:
             raise FileNotFoundError(f"Input path has no match: {item}")
+        if (
+            not force_exclude
+            and matches == [candidate]
+            and candidate.is_file()
+        ):
+            if candidate.suffix == ".md":
+                selected.add(candidate)
+            continue
         for path in matches:
             if path.is_symlink():
                 continue

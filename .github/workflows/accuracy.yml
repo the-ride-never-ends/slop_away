@@ -1,0 +1,43 @@
+name: Accuracy
+
+on:
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '23 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  accuracy:
+    runs-on: ubuntu-latest
+    env:
+      POETRY_VIRTUALENVS_IN_PROJECT: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install Poetry
+        run: python -m pip install poetry==2.4.1
+      - name: Install the accuracy group
+        run: poetry install --with accuracy --no-interaction
+      - name: Prepare independent models
+        run: poetry run python -m tests.accuracy.setup_models
+      - name: Check template accuracy
+        run: >-
+          poetry run python -m tests.accuracy.run --suite templates
+          --output templates-report.json --verify
+      - name: Check external accuracy
+        if: success() || failure()
+        run: >-
+          poetry run python -m tests.accuracy.run --suite external
+          --output external-report.json --verify
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accuracy-reports
+          path: '*-report.json'
+          if-no-files-found: error

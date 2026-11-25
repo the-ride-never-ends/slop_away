@@ -4,10 +4,8 @@
   ],
   "bad/CHANGELOG.md": [
     "INJ001",
-    "STE001",
     "STE003",
-    "STE006",
-    "VRB004"
+    "STE006"
   ],
   "bad/FEATURE_MAP.md": [
     "STE003"

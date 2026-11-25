@@ -26,7 +26,7 @@ if [[ "$project" != /* ]]; then
     exit 2
 fi
 cd -- "$project" || exit 2
-slop_away check --output-format agent -- "$file" >&2
+slop_away check --force-exclude --output-format agent -- "$file" >&2
 status=$?
 [[ $status == 0 ]] && exit 0
 exit 2

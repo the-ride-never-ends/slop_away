@@ -69,12 +69,15 @@ def check_text(text: str, path: str | Path, config: Config) -> list[Finding]:
     return _check(text, Path(path), config, {}, load_rules(config))
 
 
-def check_files(paths: Sequence[str | Path], config: Config) -> list[Finding]:
+def check_files(
+    paths: Sequence[str | Path], config: Config, force_exclude: bool = False
+) -> list[Finding]:
     """Check selected Markdown files.
 
     Args:
         paths: Project paths or glob patterns.
         config: The project settings.
+        force_exclude: Apply excludes to files named directly.
 
     Returns:
         Findings in path and source order.
@@ -87,7 +90,7 @@ def check_files(paths: Sequence[str | Path], config: Config) -> list[Finding]:
     rules = load_rules(config)
     findings = []
     seen: dict[str, Path] = {}
-    for path in select_files(paths, config):
+    for path in select_files(paths, config, force_exclude):
         findings.extend(
             _check(
                 path.read_text(encoding="utf-8"),
@@ -101,7 +104,10 @@ def check_files(paths: Sequence[str | Path], config: Config) -> list[Finding]:
 
 
 def fix_files(
-    paths: Sequence[str | Path], config: Config, unsafe: bool = False
+    paths: Sequence[str | Path],
+    config: Config,
+    unsafe: bool = False,
+    force_exclude: bool = False,
 ) -> list[Finding]:
     """Fix selected files and report the remaining findings.
 
@@ -109,6 +115,7 @@ def fix_files(
         paths: Project paths or glob patterns.
         config: The project settings.
         unsafe: Permit changes that can change meaning.
+        force_exclude: Apply excludes to files named directly.
 
     Returns:
         Findings in the changed files, in path and source order.
@@ -125,7 +132,7 @@ def fix_files(
     pending = []
     findings = []
     seen: dict[str, Path] = {}
-    for path in select_files(paths, config):
+    for path in select_files(paths, config, force_exclude):
         with path.open(encoding="utf-8", newline="") as stream:
             source = stream.read()
         relative = path.relative_to(config.root)

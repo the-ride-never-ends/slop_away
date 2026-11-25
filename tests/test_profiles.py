@@ -79,6 +79,7 @@ def test_profile_rules(profile_case):
         ("word-budget = 1.5", "word-budget"),
         ("word-budget = -1", "word-budget"),
         ("profiles = []", "profiles"),
+        ('[profiles.".git/*"]\ncommit-body-budget = 0', "commit-body-budget"),
         ('[profiles."docs/*.md"]\nunknown = 1', "unknown"),
         ('[profiles."docs/*.md"]\nword-budget = true', "word-budget"),
         ('[profiles."docs/*.md"]\nmax-grade = nan', "max-grade"),

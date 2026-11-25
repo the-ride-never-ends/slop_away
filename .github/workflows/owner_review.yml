@@ -1,0 +1,37 @@
+name: Owner review
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, labeled, unlabeled, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  owner-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const args = {...context.repo, pull_number: context.issue.number};
+            const {data: pull} = await github.rest.pulls.get(args);
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              ...args, per_page: 100,
+            });
+            if (files.length !== pull.changed_files) {
+              core.setFailed('The complete file list is required.');
+              return;
+            }
+            const protectedPath = path =>
+              ['pyproject.toml', 'slop_away.toml', 'slop_away.baseline.json']
+                .includes(path) || path === 'CODEOWNERS' ||
+              path.endsWith('/CODEOWNERS') || path.startsWith('.github/');
+            const protectedFiles = files.filter(file =>
+              protectedPath(file.filename) ||
+              (file.previous_filename && protectedPath(file.previous_filename)));
+            if (protectedFiles.length &&
+                !pull.labels.some(label => label.name === 'owner-approved')) {
+              core.setFailed('Protected files require the owner-approved label.');
+            }

@@ -29,7 +29,20 @@ hypothesis = ">=6,<7"
 pytest-cov = ">=7,<8"
 pre-commit = ">=4,<5"
 textstat = ">=0.7,<0.8"
+langdetect = "==1.0.9"
 
+
+[tool.poetry.group.accuracy]
+optional = true
+
+[tool.poetry.group.accuracy.dependencies]
+stanza = "==1.15.1"
+torch = { version = "==2.9.1+cpu", source = "pytorch-cpu" }
+
+[[tool.poetry.source]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -62,6 +75,8 @@ markers = [
     "msg_04: Commit-message feature scenario.",
     "msg_05: Commit-message feature scenario.",
     "msg_06: Commit-message feature scenario.",
+    "msg_07: Commit-message feature scenario.",
+    "msg_08: Commit-message feature scenario.",
     "precommit_04: Commit-message feature scenario.",
 
     "baseline_01: Adoption feature scenario.",
@@ -120,6 +135,9 @@ markers = [
     "cli_03: cli feature scenario.",
     "cli_04: cli feature scenario.",
     "cli_05: cli feature scenario.",
+    "cli_06: cli feature scenario.",
+    "cli_07: cli feature scenario.",
+    "cli_08: cli feature scenario.",
     "config_01: config feature scenario.",
     "config_02: config feature scenario.",
     "config_03: config feature scenario.",
@@ -134,6 +152,9 @@ markers = [
     "selection_04: selection feature scenario.",
     "selection_05: selection feature scenario.",
     "selection_06: selection feature scenario.",
+    "selection_07: selection feature scenario.",
+    "selection_08: selection feature scenario.",
+    "selection_09: selection feature scenario.",
     "markdown_01: markdown feature scenario.",
     "markdown_02: markdown feature scenario.",
     "markdown_03: markdown feature scenario.",

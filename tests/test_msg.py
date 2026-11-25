@@ -8,16 +8,12 @@ def test_msg_01():
     """GIVEN the feature setup WHEN the action runs THEN check its result."""
 
 
-@scenario(
-    "features/msg.feature", "MSG002 flags a subject not in imperative mood"
-)
+@scenario("features/msg.feature", "MSG002 flags a subject not in imperative mood")
 def test_msg_02():
     """GIVEN the feature setup WHEN the action runs THEN check its result."""
 
 
-@scenario(
-    "features/msg.feature", "MSG003 flags a subject with a trailing period"
-)
+@scenario("features/msg.feature", "MSG003 flags a subject with a trailing period")
 def test_msg_03():
     """GIVEN the feature setup WHEN the action runs THEN check its result."""
 
@@ -35,3 +31,13 @@ def test_msg_05():
 @scenario("features/msg.feature", "INJ001 does not apply to commit messages")
 def test_msg_06():
     """GIVEN the feature setup WHEN the action runs THEN check its result."""
+
+
+@scenario("features/msg.feature", "MSG004 flags a body over 150 words by default")
+def test_msg_07():
+    """GIVEN the default budget WHEN exceeded THEN report MSG004."""
+
+
+@scenario("features/msg.feature", "A body of 150 words passes by default")
+def test_msg_08():
+    """GIVEN the default budget WHEN met THEN omit MSG004."""
