@@ -359,5 +359,18 @@ directives in comments, and procedure detection.
 
 | ID | Measures | Labels | Minimum |
 |----|----------|--------|---------|
-| A1 | Precision and recall of each Tier 2 rule on template sentences | Fixed by the template | Set by the owner after the first run |
-| A2 | Precision and recall of each Tier 2 rule on the external documents | Derived from the Stanza parse | Set by the owner after the first run |
+| A1 | Precision and recall of each Tier 2 rule on template sentences | Fixed by the template | See the table below |
+| A2 | Precision and recall of each Tier 2 rule on the external documents | Derived from the Stanza parse | See the table below |
+
+The owner set these minimums after the first run. `ratchet.json` holds
+the same values. P is precision and R is recall.
+
+| Rule | A1 P | A1 R | A2 P | A2 R |
+|------|------|------|------|------|
+| STE003 | 0.95 | 0.90 | 0.85 | 0.80 |
+| STE005 | 0.95 | 0.90 | 0.85 | 0.80 |
+| STE006 | 0.95 | 0.90 | 0.40 | 0.55 |
+| MSG002 | 0.95 | 0.90 | 0.70 | 0.95 |
+| INJ001 | 0.95 | 0.90 | 0.90 | 0.50 |
+| INJ004 | 0.95 | 0.90 | 0.90 | 0.50 |
+| Procedure | 0.95 | 0.90 | 0.60 | 0.05 |
