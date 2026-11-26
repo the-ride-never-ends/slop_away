@@ -68,6 +68,8 @@ def compare_rates(actual, policy):
         ValueError: An owner limit is absent or invalid.
     """
     failures = []
+    if policy is None:
+        raise ValueError("The owner has not set the limits for this suite.")
     if set(actual) != set(policy):
         raise ValueError("Accuracy rules do not match the policy.")
     for rule, values in actual.items():
