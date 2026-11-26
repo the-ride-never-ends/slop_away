@@ -34,14 +34,14 @@ refer to FEATURE_MAP.md.
 
 - [ ] T035 2026-11-21: Add the owner's bad docs to the corpus. Auto-fix them into `fixed/` for the owner to clean by hand. Tags: @corpus_01 @corpus_02 Status: blocked, await owner review.
 - [ ] T038 2026-11-22: Draft rewrites of MVP.md, ROADMAP.md, FEATURE_MAP.md, AGENTS.md, and TODO.md for owner review. Remove their fingerprints from the baseline. Tags: @corpus_05 Status: blocked, await owner review of drafts.
-- [ ] T045 2026-11-23: Find directives by sentence, not by line. Tags: @inj_09
-- [ ] T046 2026-11-23: Keep the list marker out of the text that a fingerprint hashes. Tags: @baseline_06
 
 ## Slice 10: Generated tests
 
 
 ## Done
 
+- [x] T045 2026-11-23: Find directives by sentence, not by line. Tags: @inj_09
+- [x] T046 2026-11-23: Keep the list marker out of the text that a fingerprint hashes. Tags: @baseline_06
 - [x] T040 2026-11-22: Draw the 30 external documents with a recorded seed, and pin them. Tags: none
 - [x] T041 2026-11-22: Property tests P6 and P7. Tags: none
 - [x] T042 2026-11-22: Template sentences with known labels, and accuracy test A1. Tags: none
