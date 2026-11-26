@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
+LIST_MARKER = re.compile(r"^[ \t]*(?:[-*+]|\d+[.)])[ \t]+")
+
 
 @dataclass(frozen=True)
 class Finding:
@@ -62,7 +64,7 @@ def make_finding(
     Returns:
         The finding with its source location and fingerprint.
     """
-    normalized = " ".join(context.casefold().split())
+    normalized = " ".join(LIST_MARKER.sub("", context).casefold().split())
     digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
     fingerprint = f"{code}:{path.as_posix()}:{digest}"
     starts, ends = _line_breaks(text)
