@@ -16,12 +16,16 @@ def test_baseline_01():
     """GIVEN the feature setup WHEN the action runs THEN check its result."""
 
 
-@scenario("features/baseline.feature", "Findings in the baseline do not fail the run")
+@scenario(
+    "features/baseline.feature", "Findings in the baseline do not fail the run"
+)
 def test_baseline_02():
     """GIVEN the feature setup WHEN the action runs THEN check its result."""
 
 
-@scenario("features/baseline.feature", "A finding not in the baseline fails the run")
+@scenario(
+    "features/baseline.feature", "A finding not in the baseline fails the run"
+)
 def test_baseline_03():
     """GIVEN the feature setup WHEN the action runs THEN check its result."""
 
@@ -55,5 +59,7 @@ def test_fingerprint_ignores_list_marker(marker):
     """GIVEN a list item WHEN checked THEN hash it like the bare sentence."""
     config = Config(root=Path("."))
     bare = check_text("Never edit generated files.\n", "docs/a.md", config)
-    item = check_text(f"{marker}Never edit generated files.\n", "docs/a.md", config)
+    item = check_text(
+        f"{marker}Never edit generated files.\n", "docs/a.md", config
+    )
     assert [f.fingerprint for f in item] == [f.fingerprint for f in bare]
