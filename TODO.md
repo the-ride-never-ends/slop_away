@@ -34,19 +34,19 @@ refer to FEATURE_MAP.md.
 
 - [ ] T035 2026-11-21: Add the owner's bad docs to the corpus. Auto-fix them into `fixed/` for the owner to clean by hand. Tags: @corpus_01 @corpus_02 Status: blocked, await owner review.
 - [ ] T038 2026-11-22: Draft rewrites of MVP.md, ROADMAP.md, FEATURE_MAP.md, AGENTS.md, and TODO.md for owner review. Remove their fingerprints from the baseline. Tags: @corpus_05 Status: blocked, await owner review of drafts.
-- [ ] T045 2026-11-23: Find directives by sentence, not by line. Tags: @inj_09
-- [ ] T046 2026-11-23: Keep the list marker out of the text that a fingerprint hashes. Tags: @baseline_06
 
 ## Slice 10: Generated tests
 
-- [ ] T040 2026-11-22: Draw the 30 external documents with a recorded seed, and pin them. Tags: none Status: doing.
-- [ ] T041 2026-11-22: Property tests P6 and P7. Tags: none Status: doing.
-- [ ] T042 2026-11-22: Template sentences with known labels, and accuracy test A1. Tags: none Status: doing.
-- [ ] T043 2026-11-22: The Stanza dependency group, accuracy test A2, and its CI job. Tags: none Status: doing.
-- [ ] T044 2026-11-22: The ratchet file for A1 and A2. Tags: none Status: doing.
 
 ## Done
 
+- [x] T045 2026-11-23: Find directives by sentence, not by line. Tags: @inj_09
+- [x] T046 2026-11-23: Keep the list marker out of the text that a fingerprint hashes. Tags: @baseline_06
+- [x] T040 2026-11-22: Draw the 30 external documents with a recorded seed, and pin them. Tags: none
+- [x] T041 2026-11-22: Property tests P6 and P7. Tags: none
+- [x] T042 2026-11-22: Template sentences with known labels, and accuracy test A1. Tags: none
+- [x] T043 2026-11-22: The Stanza dependency group, accuracy test A2, and its CI job. Tags: none
+- [x] T044 2026-11-22: The ratchet file for A1 and A2. Tags: none
 - [x] T047 2026-11-24: Check a file named directly even when an exclude matches it. Add `--force-exclude`, and use it in the pre-commit and post-edit hooks. Report a check that selects no file. Tags: @selection_07 @selection_08 @selection_09 @cli_06 @cli_07 @cli_08
 - [x] T036 2026-11-22: Default `commit-body-budget` of 150 words. Remove `commit-body-budget` from profiles. Tags: @msg_07 @msg_08
 - [x] T037 2026-11-22: CI check for the `owner-approved` label on changes to the config, the baseline, CODEOWNERS, or `.github/`. Tags: none

@@ -55,3 +55,10 @@ def test_inj_07():
 )
 def test_inj_08():
     """GIVEN the feature setup WHEN the action runs THEN check its result."""
+
+
+@scenario(
+    "features/inj.feature", "INJ001 does not flag a line break inside a sentence"
+)
+def test_inj_09():
+    """GIVEN the feature setup WHEN the action runs THEN check its result."""
