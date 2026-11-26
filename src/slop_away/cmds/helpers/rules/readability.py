@@ -11,22 +11,22 @@ import cmudict
 import pyphen  # type: ignore[import-untyped]
 
 from slop_away.config import Config
-from slop_away.findings import Finding, make_finding
-from slop_away.markdown import Block, Document, parse_document
+from slop_away.utils.findings import Finding, make_finding
+from slop_away.utils.markdown import Block, Document, parse_document
 
 
-def _sections(document: Document) -> Iterator[tuple[Block, list[Block]]]:
+def _sections(doc: Document) -> Iterator[tuple[Block, list[Block]]]:
     """Get paragraph prose in each h2 section.
 
     Args:
-        document: The extracted Markdown text.
+        doc: The extracted Markdown text.
 
     Yields:
         Each h2 heading with its paragraphs.
     """
     heading = None
     paragraphs: list[Block] = []
-    for block in document.blocks:
+    for block in doc.blocks:
         if block.kind == "heading" and block.level <= 2:
             if heading is not None:
                 yield heading, paragraphs
@@ -59,9 +59,7 @@ def _words(text: str) -> list[str]:
     """
     text = re.sub(r"(?<!\w)'|'(?!\w)", "", text)
     text = re.sub(r"[^\w\s']", "", text)
-    return [
-        word for word in text.split() if any(char.isalpha() for char in word)
-    ]
+    return [word for word in text.split() if any(char.isalpha() for char in word)]
 
 
 @cache
@@ -101,21 +99,19 @@ def _syllables(word: str) -> int:
 
 
 def _graded(
-    document: Document,
+    doc: Document,
 ) -> Iterator[tuple[Block, list[Block], str, Decimal]]:
     """Score eligible section prose.
 
     Args:
-        document: The parsed document.
+        doc: The parsed document.
 
     Yields:
         The heading, paragraphs, prose, and grade.
     """
-    for heading, paragraphs in _sections(document):
+    for heading, paragraphs in _sections(doc):
         prose = "\n\n".join(block.prose.text.strip() for block in paragraphs)
-        prose = re.sub(r"(?<!\w)\d+(?:[.,]\d+)*(?!\w)", "", prose).replace(
-            "’", "'"
-        )
+        prose = re.sub(r"(?<!\w)\d+(?:[.,]\d+)*(?!\w)", "", prose).replace("’", "'")
         words = _words(prose)
         if not words:
             continue
@@ -141,17 +137,17 @@ def grade_sections(text: str) -> list[SectionGrade]:
     """
     return [
         SectionGrade(
-            heading.prose.text.strip(),
-            prose,
-            len(re.findall(r"\r\n|\r|\n", text[: heading.offset])) + 1,
-            grade,
+            heading=heading.prose.text.strip(),
+            prose=prose,
+            line=len(re.findall(r"\r\n|\r|\n", text[: heading.offset])) + 1,
+            grade=grade,
         )
         for heading, _, prose, grade in _graded(parse_document(text))
     ]
 
 
 def scan_readability(
-    text: str, path: Path, config: Config, document: Document
+    text: str, path: Path, config: Config, doc: Document
 ) -> list[Finding]:
     """Check the readability of h2 sections.
 
@@ -159,7 +155,7 @@ def scan_readability(
         text: The Markdown source.
         path: The source path.
         config: The document settings.
-        document: The extracted Markdown text.
+        doc: The extracted Markdown text.
 
     Returns:
         Findings for sections above the grade limit.
@@ -167,21 +163,19 @@ def scan_readability(
     findings: list[Finding] = []
     if not config.enabled("RDB001"):
         return findings
-    for heading, paragraphs, _, grade in _graded(document):
+    for heading, paragraphs, _, grade in _graded(doc):
         if grade > Decimal(str(config.max_grade)):
-            context = "\n".join(
-                block.prose.text for block in (heading, *paragraphs)
-            )
+            context = "\n".join(block.prose.text for block in (heading, *paragraphs))
             findings.append(
                 make_finding(
-                    "RDB001",
-                    heading.offset,
-                    text,
-                    path,
-                    context,
-                    f"Section grade {grade:.2f} is above the limit "
+                    code="RDB001",
+                    offset=heading.offset,
+                    text=text,
+                    path=path,
+                    context=context,
+                    message=f"Section grade {grade:.2f} is above the limit "
                     f"{config.max_grade}.",
-                    "Use shorter sentences and simpler words.",
+                    hint="Use shorter sentences and simpler words.",
                 )
             )
     return findings

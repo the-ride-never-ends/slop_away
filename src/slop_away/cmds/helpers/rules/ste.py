@@ -4,21 +4,19 @@ import re
 from collections.abc import Iterator
 from pathlib import Path
 
-from slop_away.config import Config
-from slop_away.findings import Finding, make_finding
-from slop_away.markdown import Document
-from slop_away.parsing import (
+from slop_away.cmds.helpers.rules.parsing import (
     PARSER,
     SUBJECT,
     ParsedToken,
     Sentence,
     is_imperative,
 )
-from slop_away.text import word_matches
+from slop_away.config import Config
+from slop_away.utils.findings import Finding, make_finding
+from slop_away.utils.markdown import Document
+from slop_away.utils.text import word_matches
 
-CONTRACTION = re.compile(
-    r"(?:\w+n['’]t|\w+['’](?:re|ve|ll|d|m|s))", re.IGNORECASE
-)
+CONTRACTION = re.compile(r"(?:\w+n['’]t|\w+['’](?:re|ve|ll|d|m|s))", re.IGNORECASE)
 FIXED_FORMS = {
     "it's",
     "that's",
@@ -71,10 +69,7 @@ def _contractions(sentence: Sentence) -> Iterator[int]:
         if (
             not value.endswith("'s")
             or value in FIXED_FORMS
-            or any(
-                token.pos == "AUX" or token.dependency in SUBJECT
-                for token in parts
-            )
+            or any(token.pos == "AUX" or token.dependency in SUBJECT for token in parts)
         ):
             yield start
 
@@ -112,18 +107,14 @@ def _grammar(sentence: Sentence, config: Config) -> list[tuple[str, int]]:
         Rule codes and source offsets for grammar findings.
     """
     matches = []
-    passive = {
-        token.head for token in sentence.tokens if token.dependency in PASSIVE
-    }
+    passive = {token.head for token in sentence.tokens if token.dependency in PASSIVE}
     if config.enabled("STE003"):
         for token in sentence.tokens:
             if token.index in passive:
                 matches.append(("STE003", token.offset))
                 break
     if config.enabled("STE004"):
-        matches.extend(
-            ("STE004", offset) for offset in _contractions(sentence)
-        )
+        matches.extend(("STE004", offset) for offset in _contractions(sentence))
     if config.enabled("STE005"):
         by_index = {token.index: token for token in sentence.tokens}
         subjects = [
@@ -138,8 +129,7 @@ def _grammar(sentence: Sentence, config: Config) -> list[tuple[str, int]]:
             auxiliaries = [
                 child
                 for child in sentence.tokens
-                if child.head == token.index
-                and child.dependency in {"aux", "auxpass"}
+                if child.head == token.index and child.dependency in {"aux", "auxpass"}
             ]
             lemmas = {child.lemma for child in auxiliaries}
             contracted = [
@@ -155,8 +145,7 @@ def _grammar(sentence: Sentence, config: Config) -> list[tuple[str, int]]:
                 token.tag == "VBG"
                 and "be" in lemmas
                 or any(
-                    child.lemma == "be" and child.tag == "VBG"
-                    for child in auxiliaries
+                    child.lemma == "be" and child.tag == "VBG" for child in auxiliaries
                 )
                 and (
                     bool(contracted)
@@ -170,22 +159,18 @@ def _grammar(sentence: Sentence, config: Config) -> list[tuple[str, int]]:
                 matches.append(("STE005", token.offset))
                 break
     if config.enabled("STE006"):
-        matches.extend(
-            ("STE006", offset) for offset in _clusters(sentence.tokens)
-        )
+        matches.extend(("STE006", offset) for offset in _clusters(sentence.tokens))
     return matches
 
 
-def scan_ste(
-    text: str, path: Path, config: Config, document: Document
-) -> list[Finding]:
+def scan_ste(*, text: str, path: Path, config: Config, doc: Document) -> list[Finding]:
     """Check the STE rule subset.
 
     Args:
         text: The Markdown source.
         path: The source path.
         config: The document settings.
-        document: The extracted Markdown text.
+        doc: The extracted Markdown text.
 
     Returns:
         STE findings with source locations and correction hints.
@@ -207,23 +192,19 @@ def scan_ste(
         for preferred, synonyms in config.glossary.items()
         for synonym in synonyms
     ]
-    for block in document.blocks:
+    for block in doc.blocks:
         sentences = PARSER.parse(block.prose)
-        if (
-            config.enabled("STE002")
-            and block.kind != "heading"
-            and len(sentences) > 6
-        ):
+        if config.enabled("STE002") and block.kind != "heading" and len(sentences) > 6:
             findings.append(
                 make_finding(
-                    "STE002",
-                    sentences[0].prose.offsets[0],
-                    text,
-                    path,
-                    " ".join(sentence.prose.text for sentence in sentences),
-                    f"Paragraph has {len(sentences)} sentences; "
+                    code="STE002",
+                    offset=sentences[0].prose.offsets[0],
+                    text=text,
+                    path=path,
+                    context=" ".join(sentence.prose.text for sentence in sentences),
+                    message=f"Paragraph has {len(sentences)} sentences; "
                     "the limit is 6.",
-                    "Divide the paragraph into shorter paragraphs.",
+                    hint="Divide the paragraph into shorter paragraphs.",
                 )
             )
         for sentence in sentences:
@@ -232,24 +213,25 @@ def scan_ste(
             if config.enabled("STE001") and words > limit:
                 findings.append(
                     make_finding(
-                        "STE001",
-                        sentence.prose.offsets[0],
-                        text,
-                        path,
-                        sentence.prose.text,
-                        f"Sentence has {words} words; the limit is {limit}.",
-                        "Divide the sentence into shorter sentences.",
+                        code="STE001",
+                        offset=sentence.prose.offsets[0],
+                        text=text,
+                        path=path,
+                        context=sentence.prose.text,
+                        message=f"Sentence has {words} words; the limit is {limit}.",
+                        hint="Divide the sentence into shorter sentences.",
                     )
                 )
             for code, offset in _grammar(sentence, config):
                 findings.append(
                     make_finding(
-                        code,
-                        offset,
-                        text,
-                        path,
-                        sentence.prose.text,
-                        *MESSAGES[code],
+                        code=code,
+                        offset=offset,
+                        text=text,
+                        path=path,
+                        context=sentence.prose.text,
+                        message=MESSAGES[code][0],
+                        hint=MESSAGES[code][1],
                     )
                 )
             if config.enabled("STE007"):
@@ -257,13 +239,13 @@ def scan_ste(
                     for match in pattern.finditer(sentence.prose.text):
                         findings.append(
                             make_finding(
-                                "STE007",
-                                sentence.prose.offsets[match.start()],
-                                text,
-                                path,
-                                sentence.prose.text,
-                                f"Term {synonym!r} is not the preferred term.",
-                                f"Use {preferred!r} instead of {synonym!r}.",
+                                code="STE007",
+                                offset=sentence.prose.offsets[match.start()],
+                                text=text,
+                                path=path,
+                                context=sentence.prose.text,
+                                message=f"Term {synonym!r} is not the preferred term.",
+                                hint=f"Use {preferred!r} instead of {synonym!r}.",
                             )
                         )
     return findings

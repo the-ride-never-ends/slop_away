@@ -22,9 +22,9 @@ def predict(rule, text):
     code = "STE001" if rule == "procedure" else rule
     config = Config(select=[code])
     if rule == "MSG002":
-        findings = check_message(text, config)
+        findings = check_message(text=text, config=config)
     else:
-        findings = check_text(text, "sample.md", config)
+        findings = check_text(text=text, path="sample.md", config=config)
     return bool(findings)
 
 

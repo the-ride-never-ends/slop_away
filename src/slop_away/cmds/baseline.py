@@ -7,10 +7,10 @@ from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from slop_away.findings import Finding
-from slop_away.storage import write_text
+from slop_away.utils.findings import Finding
+from slop_away.utils.write import write_text
 
-FILENAME = "slop_away.baseline.json"
+BASELINE_FILE_NAME = "slop_away.baseline.json"
 
 
 def _fingerprint(value: str) -> None:
@@ -122,13 +122,13 @@ def load_baseline(root: str | Path) -> Baseline:
     directory = Path(root)
     if not directory.is_dir():
         raise ValueError(f"{directory}: expected a project directory.")
-    path = directory / FILENAME
+    path = directory / BASELINE_FILE_NAME
     try:
         source = path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return Baseline()
-    except UnicodeError as error:
-        raise ValueError(f"{path}: {error}") from error
+    except UnicodeError as e:
+        raise ValueError(f"{path}: {e}") from e
     try:
         data = json.loads(source, object_pairs_hook=_object)
         if (
@@ -146,11 +146,11 @@ def load_baseline(root: str | Path) -> Baseline:
         ):
             raise ValueError("Expected unique fingerprint strings.")
         return Baseline(frozenset(values))
-    except ValueError as error:
-        raise ValueError(f"{path}: {error}") from error
+    except ValueError as e:
+        raise ValueError(f"{path}: {e}") from e
 
 
-def write_baseline(root: str | Path, findings: Iterable[Finding]) -> Baseline:
+def write_baseline(*, root: str | Path, findings: Iterable[Finding]) -> Baseline:
     """Replace the project baseline with the supplied findings.
 
     Args:
@@ -176,5 +176,5 @@ def write_baseline(root: str | Path, findings: Iterable[Finding]) -> Baseline:
         )
         + "\n"
     )
-    write_text(directory / FILENAME, source)
+    write_text(path=directory / BASELINE_FILE_NAME, text=source)
     return baseline

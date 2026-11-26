@@ -2,7 +2,7 @@
 
 import re
 
-from slop_away.markdown import Projection
+from slop_away.utils.markdown import Projection
 
 WORD = re.compile(r"\d+(?:[.,]\d+)*|[^\W_]+(?:['’\-][^\W_]+)*")
 ENDING = re.compile(r"[.!?]+[\"'’”)*_~\]]*(?=\s|$)")
@@ -45,9 +45,7 @@ def split_sentences(projection: Projection) -> list[Projection]:
     for match in ENDING.finditer(source):
         prefix = source[: match.end()].split()
         last = prefix[-1].casefold() if prefix else ""
-        if last not in ABBREVIATIONS and not re.fullmatch(
-            r"(?:[a-z]\.){2,}", last
-        ):
+        if last not in ABBREVIATIONS and not re.fullmatch(r"(?:[a-z]\.){2,}", last):
             boundaries.append(match.end())
     boundaries.append(len(source))
     sentences = []

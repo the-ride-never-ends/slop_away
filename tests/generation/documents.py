@@ -9,9 +9,9 @@ from markdown_it import MarkdownIt
 from mdit_py_plugins.front_matter import front_matter_plugin
 
 from slop_away import Config, check_text
-from slop_away.markdown import parse_document
-from slop_away.parsing import prose_text
-from slop_away.text import split_sentences, word_matches
+from slop_away.cmds.helpers.rules.parsing import prose_text
+from slop_away.utils.markdown import parse_document
+from slop_away.utils.text import split_sentences, word_matches
 from tests.corpus_support import CORPUS_ROOT
 
 EXTERNAL = json.loads((CORPUS_ROOT / "external/sources.json").read_text())

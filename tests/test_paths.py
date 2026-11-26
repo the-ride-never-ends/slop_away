@@ -34,7 +34,7 @@ def path_case(tmp_path, request):
 def test_project_patterns(path_case):
     """GIVEN project patterns WHEN selected THEN return the expected paths."""
     paths, config, force, expected = path_case
-    selected = select_files(paths, config, force)
+    selected = select_files(paths=paths, config=config, force_exclude=force)
     actual = [path.relative_to(config.root).as_posix() for path in selected]
     assert actual == expected
 
@@ -55,7 +55,7 @@ def symbolic_case(tmp_path, request):
 def test_symbolic_paths(symbolic_case):
     """GIVEN symbolic links WHEN selected THEN return only regular paths."""
     paths, config, expected = symbolic_case
-    actual = select_files(paths, config)
+    actual = select_files(paths=paths, config=config)
     assert actual == expected
 
 
@@ -70,7 +70,7 @@ def test_missing_pattern(missing_case):
     """GIVEN an unmatched pattern WHEN selected THEN raise a named error."""
     paths, config, expected = missing_case
     with pytest.raises(FileNotFoundError) as caught:
-        select_files(paths, config)
+        select_files(paths=paths, config=config)
     assert expected in str(caught.value)
 
 
@@ -85,5 +85,5 @@ def test_outside_path(outside_case):
     """GIVEN an external path WHEN selected THEN raise a named error."""
     paths, config, expected = outside_case
     with pytest.raises(ValueError) as caught:
-        select_files(paths, config)
+        select_files(paths=paths, config=config)
     assert expected in str(caught.value)

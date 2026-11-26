@@ -61,5 +61,5 @@ def own_message():
 def test_repository_commit_message(own_message):
     """GIVEN the latest commit message WHEN checked THEN report no findings."""
     text, config, expected = own_message
-    actual = check_message(text, config)
+    actual = check_message(text=text, config=config)
     assert actual == expected

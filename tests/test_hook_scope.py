@@ -132,7 +132,7 @@ def settings_command(tmp_path):
     """GIVEN a path with spaces WHEN its settings run THEN find hooks."""
     root = tmp_path / "project with spaces"
     root.mkdir()
-    init_project(root)
+    init_project(root=root)
     (root / "a.md").write_text("The tool reads the file.")
     settings = json.loads((root / ".claude/settings.json").read_text())
     command = settings["hooks"]["PostToolUse"][0]["hooks"][0]["command"]

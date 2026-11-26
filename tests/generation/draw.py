@@ -18,8 +18,8 @@ from langdetect.lang_detect_exception import (  # type: ignore[import-untyped]
 )
 from markdown_it import MarkdownIt
 
-from slop_away.markdown import parse_document
-from slop_away.text import word_matches
+from slop_away.utils.markdown import parse_document
+from slop_away.utils.text import word_matches
 
 ROOT = Path(__file__).resolve().parents[1] / "corpus/external"
 DetectorFactory.seed = 0

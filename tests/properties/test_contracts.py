@@ -13,9 +13,7 @@ from slop_away import Baseline, Config, apply_fixes, check_files, check_text
 from tests.harnesses import CliHarness
 
 EXCLUDED: tuple[Literal["Cs"], ...] = ("Cs",)
-TEXT = st.text(
-    alphabet=st.characters(exclude_categories=EXCLUDED), max_size=200
-)
+TEXT = st.text(alphabet=st.characters(exclude_categories=EXCLUDED), max_size=200)
 PROPERTY = settings(
     max_examples=40,
     deadline=None,
@@ -30,7 +28,7 @@ def safe_case(tmp_path):
 
     def prepare(text):
         """GIVEN text WHEN the second pass runs THEN retain the first pass."""
-        return apply_fixes(text, "a.md", config), config
+        return apply_fixes(text=text, path="a.md", config=config), config
 
     return prepare
 
@@ -40,7 +38,7 @@ def safe_case(tmp_path):
 def test_safe_fix_idempotence(safe_case, text):
     """GIVEN arbitrary text WHEN safely fixed twice THEN keep the same text."""
     expected, config = safe_case(text)
-    actual = apply_fixes(expected, "a.md", config)
+    actual = apply_fixes(text=expected, path="a.md", config=config)
     assert actual == expected
 
 
@@ -118,9 +116,7 @@ def process_case(tmp_path):
     suppress_health_check=[HealthCheck.function_scoped_fixture],
 )
 @given(
-    st.one_of(
-        TEXT.map(lambda value: value.encode("utf-8")), st.binary(max_size=200)
-    )
+    st.one_of(TEXT.map(lambda value: value.encode("utf-8")), st.binary(max_size=200))
 )
 def test_arbitrary_input_has_a_defined_exit(process_case, source):
     """GIVEN any input WHEN the CLI checks THEN return a defined exit code."""
@@ -141,7 +137,7 @@ def ordered_case(tmp_path):
     for name, source in texts.items():
         (tmp_path / name).write_text(source)
     config = Config(root=tmp_path)
-    return config, check_files(list(texts), config)
+    return config, check_files(paths=list(texts), config=config)
 
 
 @PROPERTY
@@ -149,5 +145,5 @@ def ordered_case(tmp_path):
 def test_file_order_does_not_change_findings(ordered_case, paths):
     """GIVEN any file order WHEN checked THEN return the same findings."""
     config, expected = ordered_case
-    actual = check_files(paths, config)
+    actual = check_files(paths=paths, config=config)
     assert actual == expected

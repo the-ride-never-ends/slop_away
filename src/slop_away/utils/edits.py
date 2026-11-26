@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from slop_away.markdown import Projection
+from slop_away.utils.markdown import Projection
 
 
 @dataclass(frozen=True, order=True)
@@ -15,7 +15,7 @@ class Edit:
 
 
 def propose_edit(
-    text: str, prose: Projection, start: int, end: int, replacement: str
+    *, text: str, prose: Projection, start: int, end: int, replacement: str
 ) -> Edit | None:
     """Describe a change to a visible source range.
 
@@ -38,4 +38,4 @@ def propose_edit(
         or text[left:right] != prose.text[start:end]
     ):
         return None
-    return Edit(left, right, replacement)
+    return Edit(start=left, end=right, replacement=replacement)

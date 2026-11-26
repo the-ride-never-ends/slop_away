@@ -29,9 +29,7 @@ def fingerprint_case(request, tmp_path):
     """GIVEN known text WHEN compared THEN use context and path only."""
     text, path, expected = request.param
     config = Config(root=tmp_path, select=["INJ001"])
-    baseline = Baseline.build(
-        check_text("You must run the tool.", "a.md", config)
-    )
+    baseline = Baseline.build(check_text("You must run the tool.", "a.md", config))
     finding = check_text(text, path, config)[0]
     return baseline, finding, expected
 
@@ -60,7 +58,7 @@ def baseline_records(tmp_path):
 def test_write_baseline_records(baseline_records):
     """GIVEN findings WHEN saved THEN write unique sorted fingerprints."""
     root, findings, expected = baseline_records
-    write_baseline(root, findings)
+    write_baseline(root=root, findings=findings)
     actual = json.loads((root / "slop_away.baseline.json").read_text())
     assert actual == expected
 
@@ -69,7 +67,7 @@ def test_write_baseline_records(baseline_records):
 def stored_baseline(baseline_records):
     """GIVEN a saved baseline WHEN loaded THEN retain all records."""
     root, findings, _expected = baseline_records
-    expected = write_baseline(root, findings)
+    expected = write_baseline(root=root, findings=findings)
     return root, expected
 
 
@@ -133,9 +131,7 @@ def invalid_record(request, tmp_path):
         "code": f"bad code:a.md:{digest}",
         "duplicate": f"INJ001:a.md:{digest}",
     }
-    values = [records[request.param]] * (
-        2 if request.param == "duplicate" else 1
-    )
+    values = [records[request.param]] * (2 if request.param == "duplicate" else 1)
     (tmp_path / "slop_away.baseline.json").write_text(
         json.dumps({"version": 1, "fingerprints": values})
     )
@@ -171,9 +167,7 @@ def baseline_cli(request, cli):
     (cli.root / "slop_away.toml").write_text('select = ["INJ001"]\n')
     old = "You must run the tool.\n"
     (cli.root / "a.md").write_text(old)
-    cli.run(
-        ["slop_away", "check", "a.md", "--write-baseline"]
-    ).check_returncode()
+    cli.run(["slop_away", "check", "a.md", "--write-baseline"]).check_returncode()
     if request.param:
         (cli.root / "a.md").write_text(old + "\nYou must stop the tool.\n")
     expected = (int(request.param), 1 if request.param else 0, "")
@@ -267,7 +261,7 @@ def test_invalid_snapshot_preserves_baseline(rejected_snapshot):
     """GIVEN an invalid fingerprint WHEN saved THEN keep the old file."""
     root, path, findings, expected = rejected_snapshot
     with pytest.raises(ValueError):
-        write_baseline(root, findings)
+        write_baseline(root=root, findings=findings)
     assert path.read_bytes() == expected
 
 
@@ -275,7 +269,7 @@ def test_invalid_snapshot_preserves_baseline(rejected_snapshot):
 def raw_api_case(report_case, tmp_path):
     """GIVEN stored findings WHEN the API checks THEN return raw findings."""
     findings, _expected = report_case
-    write_baseline(tmp_path, findings)
+    write_baseline(root=tmp_path, findings=findings)
     config = Config(root=tmp_path, select=["INJ001"])
     return config, findings
 
@@ -338,9 +332,7 @@ def test_github_annotation_escaping(annotation_case):
     assert actual == expected
 
 
-@pytest.fixture(
-    params=[("text", ""), ("agent", ""), ("github", ""), ("json", "[]\n")]
-)
+@pytest.fixture(params=[("text", ""), ("agent", ""), ("github", ""), ("json", "[]\n")])
 def empty_report(request):
     """GIVEN no findings WHEN rendered THEN use an empty report."""
     return request.param

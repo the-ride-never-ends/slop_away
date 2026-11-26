@@ -2,27 +2,26 @@
 
 import hashlib
 import io
+import ipaddress
 import json
 import os
 import re
 import stat
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
+from urllib.parse import unquote, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 from zipfile import BadZipFile, ZipFile
 
-from slop_away.config import Config
-from slop_away.package_types import (
-    PackageError,
-    PackageSpec,
-    check_transport,
-    parse_package,
-)
-from slop_away.rule_schema import Rule, read_rule
+from slop_away.cmds.helpers.rules.schema import Rule, read_rule
+from slop_away.utils.exceptions import PackageError
 
-MAX_DOWNLOAD = 16 * 1024 * 1024
-MAX_EXPANDED = 64 * 1024 * 1024
-MAX_RULE = 1024 * 1024
+MB = 1024 * 1024
+
+MAX_DOWNLOAD = 16 * MB
+MAX_EXPANDED = 64 * MB
+MAX_RULE = 1 * MB
 
 
 class PackageRedirect(HTTPRedirectHandler):
@@ -46,7 +45,7 @@ class PackageRedirect(HTTPRedirectHandler):
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
-def _members(archive: ZipFile) -> set[str]:
+def check_members(archive: ZipFile) -> set[str]:
     """Check archive members.
 
     Args:
@@ -59,10 +58,7 @@ def _members(archive: ZipFile) -> set[str]:
         PackageError: A member is unsafe or exceeds a limit.
     """
     infos = archive.infolist()
-    if (
-        len(infos) > 4096
-        or sum(item.file_size for item in infos) > MAX_EXPANDED
-    ):
+    if len(infos) > 4096 or sum(item.file_size for item in infos) > MAX_EXPANDED:
         raise PackageError("Package exceeds the archive size limits.")
     names: set[str] = set()
     files: set[str] = set()
@@ -83,9 +79,7 @@ def _members(archive: ZipFile) -> set[str]:
     return files
 
 
-def _rules(
-    archive: ZipFile, names: set[str], package: str
-) -> dict[str, bytes]:
+def _rules(archive: ZipFile, names: set[str], package: str) -> dict[str, bytes]:
     """Read package rule files.
 
     Args:
@@ -172,14 +166,13 @@ def _cache(spec: PackageSpec) -> bytes:
     """
     data = _download(spec)
     with ZipFile(io.BytesIO(data)) as archive:
-        rules = _rules(archive, _members(archive), spec.name)
+        rules = _rules(archive, check_members(archive), spec.name)
     manifest = {
         "version": 1,
         "url": spec.url,
         "archive_sha256": hashlib.sha256(data).hexdigest(),
         "rules": {
-            name: hashlib.sha256(source).hexdigest()
-            for name, source in rules.items()
+            name: hashlib.sha256(source).hexdigest() for name, source in rules.items()
         },
     }
     output = io.BytesIO()
@@ -190,7 +183,7 @@ def _cache(spec: PackageSpec) -> bytes:
     return output.getvalue()
 
 
-def sync_packages(config: Config) -> None:
+def sync_packages(config) -> None:
     """Download and cache the configured packages.
 
     Args:
@@ -213,15 +206,71 @@ def sync_packages(config: Config) -> None:
     for spec, data in pending:
         temporary: Path | None = None
         try:
-            with tempfile.NamedTemporaryFile(
-                dir=directory, delete=False
-            ) as stream:
+            with tempfile.NamedTemporaryFile(dir=directory, delete=False) as stream:
                 temporary = Path(stream.name)
                 stream.write(data)
             os.replace(temporary, directory / f"{spec.name}.zip")
         finally:
             if temporary is not None:
                 temporary.unlink(missing_ok=True)
+
+
+def check_transport(url: str) -> None:
+    """Check a package transport URL.
+
+    Args:
+        url: The download URL.
+
+    Raises:
+        ValueError: The URL does not use an allowed transport.
+    """
+    parsed = urlsplit(url)
+    host = parsed.hostname
+    if not host or parsed.username is not None or parsed.password is not None:
+        raise ValueError("Package URLs need a host and must omit credentials.")
+    if parsed.port == 0:
+        raise ValueError("Package URLs need a valid port.")
+    if parsed.scheme == "https":
+        return
+    loopback = host == "localhost"
+    if not loopback:
+        try:
+            loopback = ipaddress.ip_address(host).is_loopback
+        except ValueError:
+            loopback = False
+    if parsed.scheme != "http" or not loopback:
+        raise ValueError("Use HTTPS package URLs; HTTP needs a loopback host.")
+
+
+@dataclass(frozen=True)
+class PackageSpec:
+    """Hold a package name and its source URL."""
+
+    name: str
+    url: str
+
+
+def parse_package(url: str) -> PackageSpec:
+    """Read a package name from its URL.
+
+    Args:
+        url: The package ZIP URL.
+
+    Returns:
+        The package name and source URL.
+
+    Raises:
+        ValueError: The URL or package name is invalid.
+    """
+    check_transport(url)
+    parsed = urlsplit(url)
+    path = PurePosixPath(unquote(parsed.path))
+    if parsed.fragment or path.suffix.lower() != ".zip":
+        raise ValueError("Package URLs must name ZIP files and omit fragments.")
+    name = path.stem
+    if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,127}", name):
+        raise ValueError("Package names need letters, digits, '_' or '-'.")
+    return PackageSpec(name, url)
 
 
 def _load(spec: PackageSpec, root: Path) -> tuple[Rule, ...]:
@@ -240,7 +289,7 @@ def _load(spec: PackageSpec, root: Path) -> tuple[Rule, ...]:
     path = root / ".slop_away" / "packages" / f"{spec.name}.zip"
     try:
         with ZipFile(path) as archive:
-            names = _members(archive)
+            names = check_members(archive)
             if archive.getinfo("manifest.json").file_size > MAX_RULE:
                 raise PackageError("Cache manifest exceeds the size limit.")
             manifest = json.loads(archive.read("manifest.json"))
@@ -250,9 +299,7 @@ def _load(spec: PackageSpec, root: Path) -> tuple[Rule, ...]:
                 or manifest.get("version") != 1
                 or manifest.get("url") != spec.url
                 or not isinstance(manifest.get("archive_sha256"), str)
-                or not re.fullmatch(
-                    r"[0-9a-f]{64}", manifest["archive_sha256"]
-                )
+                or not re.fullmatch(r"[0-9a-f]{64}", manifest["archive_sha256"])
             ):
                 raise PackageError("Cache source or version does not match.")
             hashes = manifest.get("rules")
@@ -262,16 +309,13 @@ def _load(spec: PackageSpec, root: Path) -> tuple[Rule, ...]:
                 or any(not isinstance(name, str) for name in hashes)
             ):
                 raise PackageError("Invalid cache rule list.")
-            if names != {"manifest.json"} | {
-                f"rules/{name}" for name in hashes
-            }:
+            if names != {"manifest.json"} | {f"rules/{name}" for name in hashes}:
                 raise PackageError("Cache members do not match the manifest.")
             rules = []
             for name, digest in sorted(hashes.items()):
                 if (
                     PurePosixPath(name).name != name
-                    or PurePosixPath(name).suffix.lower()
-                    not in {".yml", ".yaml"}
+                    or PurePosixPath(name).suffix.lower() not in {".yml", ".yaml"}
                     or not re.fullmatch(
                         r"[A-Za-z][A-Za-z0-9_.-]*", PurePosixPath(name).stem
                     )
@@ -283,18 +327,14 @@ def _load(spec: PackageSpec, root: Path) -> tuple[Rule, ...]:
                 if hashlib.sha256(source).hexdigest() != digest:
                     raise PackageError(f"Cache hash does not match {name}.")
                 rules.append(
-                    read_rule(
-                        f"{spec.name}.{PurePosixPath(name).stem}", source
-                    )
+                    read_rule(f"{spec.name}.{PurePosixPath(name).stem}", source)
                 )
             return tuple(rules)
-    except (OSError, ValueError, KeyError, BadZipFile, RuntimeError) as error:
-        raise PackageError(
-            f"{spec.name}: {error}. Run slop_away sync."
-        ) from error
+    except (OSError, ValueError, KeyError, BadZipFile, RuntimeError) as e:
+        raise PackageError(f"{spec.name}: {e}. Run slop_away sync.") from e
 
 
-def load_rules(config: Config) -> tuple[Rule, ...]:
+def load_rules(config) -> tuple[Rule, ...]:
     """Read configured rules without network access.
 
     Args:

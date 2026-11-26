@@ -7,15 +7,20 @@ from collections.abc import Sequence
 from importlib.metadata import version
 from pathlib import Path
 
-from slop_away.baseline import Baseline, load_baseline, write_baseline
-from slop_away.checks import check_files, fix_files
+from slop_away.cmds import (
+    Baseline,
+    check_files,
+    check_message,
+    fix_files,
+    guard_command,
+    init_project,
+    load_baseline,
+    render_findings,
+    sync_packages,
+    write_baseline,
+)
 from slop_away.config import ConfigError, find_root, load_config
-from slop_away.guard import guard_command
-from slop_away.initialize import init_project
-from slop_away.messages import check_message
-from slop_away.output import render_findings
-from slop_away.packages import sync_packages
-from slop_away.selection import select_files
+from slop_away.utils.selection import select_files
 
 logger = logging.getLogger(__name__)
 
@@ -83,9 +88,7 @@ def parse_args() -> ArgumentParser:
         epilog=MAIN_EXAMPLES,
         formatter_class=RawDescriptionHelpFormatter,
     )
-    parser.add_argument(
-        "--version", action="version", version=version("slop_away")
-    )
+    parser.add_argument("--version", action="version", version=version("slop_away"))
     commands = parser.add_subparsers(dest="command")
     commands.add_parser(
         "sync",
@@ -164,7 +167,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         match cmd:
             case "init":
                 init_project(
-                    Path.cwd(),
+                    root=Path.cwd(),
                     skip_config=args.skip_config,
                     skip_pre_commit=args.skip_pre_commit,
                     skip_ci=args.skip_ci,
@@ -178,24 +181,18 @@ def main(argv: Sequence[str] | None = None) -> int:
                 sync_packages(config)
                 return 0
         commit_msg = args.commit_msg
-        if commit_msg is not None and (
-            args.paths or args.fix or args.unsafe_fixes
-        ):
-            raise ValueError(
-                "--commit-msg cannot use Markdown paths or fix flags."
-            )
-        baseline = (
-            Baseline() if args.write_baseline else load_baseline(config.root)
-        )
+        if commit_msg is not None and (args.paths or args.fix or args.unsafe_fixes):
+            raise ValueError("--commit-msg cannot use Markdown paths or fix flags.")
+        baseline = Baseline() if args.write_baseline else load_baseline(config.root)
         if commit_msg is not None:
-            with Path(commit_msg).open(
-                encoding="utf-8", newline=""
-            ) as f:
-                message = f.read()
-            findings = check_message(message, config)
+            with open(Path(commit_msg), encoding="utf-8", newline="") as f:
+                msg = f.read()
+            findings = check_message(text=msg, config=config)
         else:
             paths = [str(Path.cwd() / path) for path in (args.paths or ["."])]
-            selected = select_files(paths, config, args.force_exclude)
+            selected = select_files(
+                paths=paths, config=config, force_exclude=args.force_exclude
+            )
             if not selected:
                 if not args.force_exclude:
                     print(
@@ -207,15 +204,13 @@ def main(argv: Sequence[str] | None = None) -> int:
                     print("[]")
                 return 0
             findings = (
-                fix_files(selected, config, args.unsafe_fixes)
+                fix_files(paths=selected, config=config, unsafe=args.unsafe_fixes)
                 if args.fix or args.unsafe_fixes
-                else check_files(selected, config)
+                else check_files(paths=selected, config=config)
             )
         if args.write_baseline:
-            baseline = write_baseline(config.root, findings)
-        findings = [
-            f for f in findings if not baseline.matches(f)
-        ]
+            baseline = write_baseline(root=config.root, findings=findings)
+        findings = [f for f in findings if not baseline.matches(f)]
         print(render_findings(findings, args.output_format), end="")
         return int(bool(findings))
     except (ConfigError, OSError, UnicodeError, ValueError) as e:

@@ -109,8 +109,7 @@ def check_string(config: Config, path: str, text: str):
 
 @when(
     parsers.parse(
-        'check_text runs on "{path}" with text containing '
-        "the character U+{codepoint}"
+        'check_text runs on "{path}" with text containing the character U+{codepoint}'
     ),
     target_fixture="findings",
 )
@@ -120,9 +119,7 @@ def check_character(config: Config, path: str, codepoint: str):
 
 
 @when(
-    parsers.parse(
-        'check_text runs on "{path}" with a text of {count:d} words'
-    ),
+    parsers.parse('check_text runs on "{path}" with a text of {count:d} words'),
     target_fixture="findings",
 )
 def check_words(config: Config, path: str, count: int):
@@ -133,7 +130,7 @@ def check_words(config: Config, path: str, count: int):
 @when(parsers.parse("check_files runs on {paths}"), target_fixture="findings")
 def check_paths(config: Config, paths: str):
     """GIVEN document paths WHEN checked THEN return all findings."""
-    return check_files(ast.literal_eval(paths), config)
+    return check_files(paths=ast.literal_eval(paths), config=config)
 
 
 @then(parsers.parse('check_message returns a finding with code "{code}"'))
@@ -164,7 +161,7 @@ def no_findings(findings: list[Finding]):
 @when(parsers.parse("select_files runs on {paths}"), target_fixture="selected")
 def choose_files(config: Config, paths: str):
     """GIVEN project paths WHEN selected THEN return Markdown paths."""
-    return select_files(ast.literal_eval(paths), config)
+    return select_files(paths=ast.literal_eval(paths), config=config)
 
 
 @when(
@@ -173,7 +170,9 @@ def choose_files(config: Config, paths: str):
 )
 def choose_files_forced(config: Config, paths: str):
     """GIVEN project paths WHEN excludes are forced THEN apply them."""
-    return select_files(ast.literal_eval(paths), config, force_exclude=True)
+    return select_files(
+        paths=ast.literal_eval(paths), config=config, force_exclude=True
+    )
 
 
 @then(parsers.parse('the result contains "{path}"'))
@@ -246,9 +245,7 @@ def git_project(tmp_path: Path):
         "GIT_CONFIG_NOSYSTEM": "1",
     }
     harness = GitHarness(tmp_path, environment)
-    harness.install(
-        Path(__file__).resolve().parents[1] / ".pre-commit-hooks.yaml"
-    )
+    harness.install(Path(__file__).resolve().parents[1] / ".pre-commit-hooks.yaml")
     return harness
 
 

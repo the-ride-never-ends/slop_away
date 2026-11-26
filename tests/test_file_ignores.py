@@ -90,7 +90,7 @@ def ignored_fix(tmp_path):
 def test_ignores_control_fixes(ignored_fix):
     """GIVEN a per-file ignore WHEN fixing THEN keep its original text."""
     expected, config = ignored_fix
-    actual = apply_fixes(expected, "docs/a.md", config, True)
+    actual = apply_fixes(text=expected, path="docs/a.md", config=config, unsafe=True)
     assert actual == expected
 
 

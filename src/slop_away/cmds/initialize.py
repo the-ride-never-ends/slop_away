@@ -7,7 +7,7 @@ from typing import Any
 
 import yaml  # type: ignore[import-untyped]
 
-from slop_away.storage import write_text
+from slop_away.utils.write import write_text
 
 SLOP_REPO = "https://github.com/the-ride-never-ends/slop_away"
 SLOP_REV = "091ebf22b9f7e479a1fd10ad0d2497b306500998"
@@ -24,9 +24,7 @@ REPOSITORIES: list[dict[str, Any]] = [
     {
         "repo": "https://github.com/lycheeverse/lychee",
         "rev": "lychee-v0.24.2",
-        "hooks": [
-            {"id": "lychee", "types": ["markdown"], "stages": ["pre-commit"]}
-        ],
+        "hooks": [{"id": "lychee", "types": ["markdown"], "stages": ["pre-commit"]}],
     },
     {
         "repo": "https://github.com/rvben/rumdl-pre-commit",
@@ -91,11 +89,7 @@ def _template(name: str) -> str:
     Returns:
         The template text.
     """
-    source = (
-        files("slop_away")
-        .joinpath("templates", name)
-        .read_text(encoding="utf-8")
-    )
+    source = files("slop_away").joinpath("templates", name).read_text(encoding="utf-8")
     return source.replace("@SLOP_REV@", SLOP_REV)
 
 
@@ -112,9 +106,7 @@ def _precommit(path: Path) -> str:
         ValueError: The existing configuration is invalid.
     """
     data = (
-        yaml.load(_read(path), Loader=ProjectLoader)
-        if path.exists()
-        else {"repos": []}
+        yaml.load(_read(path), Loader=ProjectLoader) if path.exists() else {"repos": []}
     )
     if not isinstance(data, dict) or not isinstance(data.get("repos"), list):
         raise TypeError(f"{path}: expected a repos list.")
@@ -125,8 +117,7 @@ def _precommit(path: Path) -> str:
             or not isinstance(repo.get("repo"), str)
             or not isinstance(repo.get("hooks"), list)
             or any(
-                not isinstance(hook, dict)
-                or not isinstance(hook.get("id"), str)
+                not isinstance(hook, dict) or not isinstance(hook.get("id"), str)
                 for hook in repo["hooks"]
             )
         ):
@@ -143,20 +134,15 @@ def _precommit(path: Path) -> str:
         existing = [
             repo
             for repo in repos
-            if repo["repo"].rstrip("/").removesuffix(".git")
-            == addition["repo"]
+            if repo["repo"].rstrip("/").removesuffix(".git") == addition["repo"]
         ]
         if len(existing) > 1:
-            raise ValueError(
-                f"{path}: duplicate repository {addition['repo']}."
-            )
+            raise ValueError(f"{path}: duplicate repository {addition['repo']}.")
         if existing:
             hooks = existing[0]["hooks"]
             ids = {hook["id"] for hook in hooks}
             hooks.extend(
-                hook.copy()
-                for hook in addition["hooks"]
-                if hook["id"] not in ids
+                hook.copy() for hook in addition["hooks"] if hook["id"] not in ids
             )
         else:
             repos.append(
@@ -200,14 +186,8 @@ def _settings(path: Path) -> str:
     Raises:
         ValueError: The existing hook settings are invalid.
     """
-    data = (
-        json.loads(_read(path), object_pairs_hook=_object)
-        if path.exists()
-        else {}
-    )
-    if not isinstance(data, dict) or not isinstance(
-        data.get("hooks", {}), dict
-    ):
+    data = json.loads(_read(path), object_pairs_hook=_object) if path.exists() else {}
+    if not isinstance(data, dict) or not isinstance(data.get("hooks", {}), dict):
         raise TypeError(f"{path}: expected an object with hook settings.")
     hooks = data.setdefault("hooks", {})
     for entries in hooks.values():
@@ -227,9 +207,7 @@ def _settings(path: Path) -> str:
             for entry in entries
         ):
             continue
-        entry: dict[str, Any] = {
-            "hooks": [{"type": "command", "command": command}]
-        }
+        entry: dict[str, Any] = {"hooks": [{"type": "command", "command": command}]}
         if matcher is not None:
             entry["matcher"] = matcher
         entries.append(entry)
@@ -247,8 +225,7 @@ def _ignore(path: Path) -> str:
     """
     source = _read(path) if path.exists() else ""
     if any(
-        line.strip() in {".slop_away/", "/.slop_away/"}
-        for line in source.splitlines()
+        line.strip() in {".slop_away/", "/.slop_away/"} for line in source.splitlines()
     ):
         return source
     ending = "\r\n" if "\r\n" in source else "\n"
@@ -261,8 +238,8 @@ def _ignore(path: Path) -> str:
 
 
 def init_project(
-    root: str | Path,
     *,
+    root: str | Path,
     skip_config: bool = False,
     skip_pre_commit: bool = False,
     skip_ci: bool = False,
@@ -282,11 +259,6 @@ def init_project(
         TypeError: A skip option is not a boolean.
         OSError: A project file cannot be read or written.
     """
-    if any(
-        type(option) is not bool
-        for option in (skip_config, skip_pre_commit, skip_ci, skip_hooks)
-    ):
-        raise TypeError("Expected boolean skip options.")
     directory = Path(root).resolve()
     if not directory.is_dir():
         raise ValueError(f"{directory}: expected a project directory.")
@@ -313,16 +285,13 @@ def init_project(
                 and path != target
                 and not path.is_dir()
             ):
-                raise ValueError(
-                    f"{path}: expected a project path without symlinks."
-                )
+                raise ValueError(f"{path}: expected a project path without symlinks.")
         if name in fresh and target.exists():
             raise ValueError(f"{target}: target already exists.")
         if name in merge and target.exists() and not target.is_file():
             raise ValueError(f"{target}: expected a file.")
     pending = [
-        (directory / name, _template(template))
-        for name, template in fresh.items()
+        (directory / name, _template(template)) for name, template in fresh.items()
     ]
     for name, merger in merge.items():
         path = directory / name
@@ -333,8 +302,9 @@ def init_project(
     for path, text in pending:
         existed = path.exists()
         path.parent.mkdir(parents=True, exist_ok=True)
+        mode = None if existed else 0o755 if path.suffix == ".sh" else 0o644
         write_text(
-            path,
-            text,
-            None if existed else 0o755 if path.suffix == ".sh" else 0o644,
+            path=path,
+            text=text,
+            mode=mode,
         )

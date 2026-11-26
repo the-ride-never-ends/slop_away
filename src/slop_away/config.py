@@ -7,7 +7,8 @@ from math import isfinite
 from pathlib import Path, PurePosixPath
 from typing import Any, cast
 
-from slop_away.package_types import parse_package
+from slop_away.cmds.helpers.packages import parse_package
+from slop_away.utils.exceptions import ConfigError
 
 GROUP_LIMITS = {"INJ": 4, "VRB": 5, "RDB": 1, "STE": 7, "MSG": 4}
 NATIVE_CODES = tuple(
@@ -15,10 +16,6 @@ NATIVE_CODES = tuple(
     for group, limit in GROUP_LIMITS.items()
     for number in range(1, limit + 1)
 )
-
-
-class ConfigError(ValueError):
-    """Report invalid project settings."""
 
 
 def _strings(value: object, key: str) -> None:
@@ -53,9 +50,7 @@ def _selectors(value: Any, key: str, packages: set[str]) -> None:
         native = any(code.startswith(entry) for code in NATIVE_CODES)
         external = entry in packages or any(
             entry.startswith(name + ".")
-            and re.fullmatch(
-                r"[A-Za-z][A-Za-z0-9_.-]*", entry[len(name) + 1 :]
-            )
+            and re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]*", entry[len(name) + 1 :])
             for name in packages
         )
         if not native and not external:
@@ -185,17 +180,11 @@ def _glossary(value: Any) -> None:
     banned: set[str] = set()
     for synonyms in value.values():
         for synonym in synonyms:
-            if (
-                synonym != synonym.strip()
-                or "\n" in synonym
-                or "\r" in synonym
-            ):
+            if synonym != synonym.strip() or "\n" in synonym or "\r" in synonym:
                 raise ConfigError("glossary: expected single-line synonyms.")
             normalized = " ".join(synonym.casefold().split())
             if normalized in preferred or normalized in banned:
-                raise ConfigError(
-                    f"glossary: conflicting synonym {synonym!r}."
-                )
+                raise ConfigError(f"glossary: conflicting synonym {synonym!r}.")
             banned.add(normalized)
 
 
@@ -310,10 +299,7 @@ class Config:
         for pattern, profile in self.profiles.items():
             if PurePosixPath(relative.as_posix()).full_match(pattern):
                 settings.update(
-                    {
-                        key.replace("-", "_"): value
-                        for key, value in profile.items()
-                    }
+                    {key.replace("-", "_"): value for key, value in profile.items()}
                 )
         ignored = list(settings.get("ignore", self.ignore))
         for pattern, selectors in self.per_file_ignores.items():

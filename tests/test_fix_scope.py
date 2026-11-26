@@ -56,7 +56,7 @@ def safe_case(request, tmp_path):
 def test_safe_fix_behavior(safe_case):
     """GIVEN prose WHEN safe fixes run THEN return the expected source."""
     text, path, config, unsafe, expected = safe_case
-    actual = apply_fixes(text, path, config, unsafe)
+    actual = apply_fixes(text=text, path=path, config=config, unsafe=unsafe)
     assert actual == expected
 
 
@@ -64,14 +64,14 @@ def test_safe_fix_behavior(safe_case):
 def fixed_case(safe_case):
     """GIVEN a safe fix WHEN a second pass runs THEN use fixed source."""
     text, path, config, unsafe, _expected = safe_case
-    fixed = apply_fixes(text, path, config, unsafe)
+    fixed = apply_fixes(text=text, path=path, config=config, unsafe=unsafe)
     return fixed, path, config, unsafe
 
 
 def test_safe_fixes_are_idempotent(fixed_case):
     """GIVEN fixed text WHEN fixed again THEN preserve the source."""
     expected, path, config, unsafe = fixed_case
-    actual = apply_fixes(expected, path, config, unsafe)
+    actual = apply_fixes(text=expected, path=path, config=config, unsafe=unsafe)
     assert actual == expected
 
 
@@ -95,7 +95,7 @@ def excluded_case(request, tmp_path):
 def test_fix_preserves_skipped_content(excluded_case):
     """GIVEN skipped Markdown WHEN fixed THEN leave its contents intact."""
     text, config, expected = excluded_case
-    actual = apply_fixes(text, "a.md", config, True)
+    actual = apply_fixes(text=text, path="a.md", config=config, unsafe=True)
     assert actual == expected
 
 
@@ -142,7 +142,7 @@ def selection_case(request, tmp_path):
 def test_fix_selection(selection_case):
     """GIVEN rule selection WHEN fixed THEN apply only allowed fixes."""
     text, path, config, expected = selection_case
-    actual = apply_fixes(text, path, config, True)
+    actual = apply_fixes(text=text, path=path, config=config, unsafe=True)
     assert actual == expected
 
 
@@ -177,7 +177,7 @@ def unsafe_case(request, tmp_path):
 def test_unsafe_fix_behavior(unsafe_case):
     """GIVEN unsafe fixes WHEN requested THEN change supported phrases."""
     text, config, expected = unsafe_case
-    actual = apply_fixes(text, "a.md", config, True)
+    actual = apply_fixes(text=text, path="a.md", config=config, unsafe=True)
     assert actual == expected
 
 
@@ -192,16 +192,16 @@ def package_swap(request, tmp_path, package_server):
         select=["test-pkg"],
     )
     sync_packages(config)
-    expected = (
-        "We use the parser." if request.param else "We utilize the parser."
-    )
+    expected = "We use the parser." if request.param else "We utilize the parser."
     return config, request.param, expected
 
 
 def test_external_swap(package_swap):
     """GIVEN a cached swap WHEN fixed THEN require unsafe permission."""
     config, unsafe, expected = package_swap
-    actual = apply_fixes("We utilize the parser.", "a.md", config, unsafe)
+    actual = apply_fixes(
+        text="We utilize the parser.", path="a.md", config=config, unsafe=unsafe
+    )
     assert actual == expected
 
 
@@ -221,18 +221,18 @@ def conflicting_case(request, tmp_path, package_server):
             "select": ["test-pkg"],
         }
         sync_packages(Config(root=tmp_path, **settings))
-    return (
-        "In order to run the tool.",
-        "a.md",
-        Config(root=tmp_path, **settings),
-        True,
-    )
+    return {
+        "text": "In order to run the tool.",
+        "path": "a.md",
+        "config": Config(root=tmp_path, **settings),
+        "unsafe": True,
+    }
 
 
 def test_conflicting_fix_plan(conflicting_case):
     """GIVEN overlapping or cyclic fixes WHEN applied THEN fail fast."""
     with pytest.raises(ValueError) as error:
-        apply_fixes(*conflicting_case)
+        apply_fixes(**conflicting_case)
     expected = ValueError
     assert type(error.value) is expected
 
@@ -251,7 +251,7 @@ def test_fix_validates_batch_before_writes(unreadable_batch):
     """GIVEN invalid UTF-8 WHEN fixing a batch THEN write no files."""
     path, expected, config = unreadable_batch
     with pytest.raises(UnicodeError):
-        fix_files(["."], config)
+        fix_files(paths=[config.root], config=config)
     assert path.read_bytes() == expected
 
 

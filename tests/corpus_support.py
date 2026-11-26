@@ -22,7 +22,7 @@ class CorpusHarness:
         for path in sorted((self.root / group).rglob("*.md")):
             relative = path.relative_to(self.root).as_posix()
             result[relative] = sorted(
-                {item.code for item in check_files([path], config)}
+                {item.code for item in check_files(paths=[path], config=config)}
             )
         if not result:
             raise ValueError(f"Empty corpus group {group!r}.")

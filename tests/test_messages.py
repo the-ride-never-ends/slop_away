@@ -19,7 +19,7 @@ from tests.package_steps import DELVE
 
 
 @pytest.fixture
-def message_args():
+def msg_args():
     """GIVEN message output WHEN checked THEN request JSON findings."""
     return [
         "slop_away",
@@ -61,10 +61,7 @@ def message_args():
             [],
         ),
         (
-            (
-                "Add the parser\n\n**One** `two` "
-                "[three](https://example.com) four."
-            ),
+            ("Add the parser\n\n**One** `two` [three](https://example.com) four."),
             {"commit_body_budget": 2},
             [("MSG004", 3, 44)],
         ),
@@ -79,7 +76,7 @@ def message_case(request, tmp_path):
 def test_message_rule_locations(message_case):
     """GIVEN message rules WHEN checked THEN report source locations."""
     text, config, expected = message_case
-    findings = check_message(text, config)
+    findings = check_message(text=text, config=config)
     actual = [(item.code, item.line, item.column) for item in findings]
     assert actual == expected
 
@@ -110,7 +107,7 @@ def skipped_message(request, tmp_path):
 def test_message_metadata_is_skipped(skipped_message):
     """GIVEN trailers and editor metadata WHEN checked THEN omit them."""
     text, config, expected = skipped_message
-    actual = check_message(text, config)
+    actual = check_message(text=text, config=config)
     assert actual == expected
 
 
@@ -129,10 +126,7 @@ def test_message_metadata_is_skipped(skipped_message):
         ("Add the parser\n\n<!-- You must run tests. -->\n", ["INJ004"]),
         ("Add the parser\n\nYou must run tests.\n", []),
         (
-            (
-                "Add the parser\n\nThe file is read by the parser. "
-                "It doesn't stop.\n"
-            ),
+            ("Add the parser\n\nThe file is read by the parser. It doesn't stop.\n"),
             [],
         ),
         ("Add the parser\n\nIt might possibly work.\n", []),
@@ -151,7 +145,7 @@ def prose_case(request, tmp_path):
 def test_message_prose_scope(prose_case):
     """GIVEN commit prose WHEN checked THEN use only message prose rules."""
     text, config, expected = prose_case
-    findings = check_message(text, config)
+    findings = check_message(text=text, config=config)
     assert [finding.code for finding in findings] == expected
 
 
@@ -173,7 +167,7 @@ def selected_message(request, tmp_path):
 def test_message_rule_selection(selected_message):
     """GIVEN message rule settings WHEN checked THEN apply selection."""
     config, expected = selected_message
-    findings = check_message("Added the parser.", config)
+    findings = check_message(text="Added the parser.", config=config)
     assert [finding.code for finding in findings] == expected
 
 
@@ -201,7 +195,7 @@ def test_empty_message(empty_message):
     """GIVEN an empty message WHEN checked THEN fail fast."""
     text, config, expected = empty_message
     with pytest.raises(ValueError) as error:
-        check_message(text, config)
+        check_message(text=text, config=config)
     assert type(error.value) is expected
 
 
@@ -224,7 +218,7 @@ def test_message_package_rules(package_message):
     """GIVEN a synced package WHEN checked offline THEN use its rules."""
     config, expected = package_message
     findings = check_message(
-        "Add the parser\n\nWe delve into the parser.\n", config
+        text="Add the parser\n\nWe delve into the parser.\n", config=config
     )
     assert [finding.code for finding in findings] == expected
 
@@ -241,7 +235,7 @@ def test_message_requires_configured_cache(missing_package):
     """GIVEN a missing package cache WHEN checking THEN name the package."""
     config, expected = missing_package
     with pytest.raises(PackageError) as error:
-        check_message("Add the parser", config)
+        check_message(text="Add the parser", config=config)
     assert expected in str(error.value)
 
 
@@ -251,20 +245,20 @@ def conflicting_flags(request, cli):
     original = "The tool doesn't stop."
     (cli.root / "a.md").write_text(original)
     (cli.root / "message").write_text("Add the parser")
-    arguments = [
+    args = [
         "slop_away",
         "check",
         "--commit-msg",
         "message",
         request.param,
     ]
-    return cli, arguments, (2, original)
+    return cli, args, (2, original)
 
 
 def test_commit_mode_rejects_markdown_options(conflicting_flags):
     """GIVEN conflicting flags WHEN the CLI runs THEN write no source."""
-    cli, arguments, expected = conflicting_flags
-    result = cli.run(arguments)
+    cli, args, expected = conflicting_flags
+    result = cli.run(args)
     actual = result.returncode, (cli.root / "a.md").read_text()
     assert actual == expected
 
@@ -275,12 +269,12 @@ def test_commit_mode_rejects_markdown_options(conflicting_flags):
         ("Added the parser.", 1, ["MSG002", "MSG003"]),
     ]
 )
-def message_cli(request, cli, message_args):
+def message_cli(request, cli, msg_args):
     """GIVEN a message file WHEN checked THEN bypass Markdown selection."""
     text, status, codes = request.param
     (cli.root / "message").write_text(text)
     (cli.root / "slop_away.toml").write_text('exclude = ["*"]\n')
-    return cli, message_args, (status, codes, "")
+    return cli, msg_args, (status, codes, "")
 
 
 def test_commit_message_cli(message_cli):
@@ -322,18 +316,18 @@ def body_scope(request, tmp_path):
 def test_message_body_budget_scope(body_scope):
     """GIVEN a message body WHEN checked THEN honor its budget scope."""
     text, config, expected = body_scope
-    findings = check_message(text, config)
+    findings = check_message(text=text, config=config)
     assert [finding.code for finding in findings] == expected
 
 
 @pytest.fixture
-def message_baseline(cli, message_args):
+def message_baseline(cli, msg_args):
     """GIVEN known message findings WHEN checked THEN use their baseline."""
     (cli.root / "message").write_text("Added the parser.")
     cli.run(
         ["slop_away", "check", "--commit-msg", "message", "--write-baseline"]
     ).check_returncode()
-    return cli, message_args, (0, [], "")
+    return cli, msg_args, (0, [], "")
 
 
 def test_commit_message_baseline(message_baseline):
@@ -350,12 +344,8 @@ def offline_message(cli, package_server):
     package_server.store("test-pkg", {"test-pkg/Delve.yml": DELVE})
     config = Config(root=cli.root, packages=[package_server.url("test-pkg")])
     sync_packages(config)
-    (cli.root / "message").write_text(
-        "Add the parser\n\nWe delve into the parser.\n"
-    )
-    (cli.root / "slop_away.toml").write_text(
-        f'packages = ["{config.packages[0]}"]\n'
-    )
+    (cli.root / "message").write_text("Add the parser\n\nWe delve into the parser.\n")
+    (cli.root / "slop_away.toml").write_text(f'packages = ["{config.packages[0]}"]\n')
     directory = cli.root / "network"
     directory.mkdir()
     (directory / "sitecustomize.py").write_text(

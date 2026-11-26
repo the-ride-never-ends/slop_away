@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 
 
-def write_text(path: Path, text: str, mode: int | None = None) -> None:
+def write_text(*, path: Path, text: str, mode: int | None = None) -> None:
     """Replace a text file.
 
     Args:
@@ -18,7 +18,7 @@ def write_text(path: Path, text: str, mode: int | None = None) -> None:
     """
     if mode is None and path.exists():
         mode = path.stat().st_mode
-    temporary: Path | None = None
+    temp: Path | None = None
     try:
         with tempfile.NamedTemporaryFile(
             mode="w",
@@ -26,12 +26,12 @@ def write_text(path: Path, text: str, mode: int | None = None) -> None:
             newline="",
             dir=path.parent,
             delete=False,
-        ) as stream:
-            temporary = Path(stream.name)
-            stream.write(text)
+        ) as f:
+            temp = Path(f.name)
+            f.write(text)
         if mode is not None:
-            temporary.chmod(mode)
-        os.replace(temporary, path)
+            temp.chmod(mode)
+        os.replace(temp, path)
     finally:
-        if temporary is not None:
-            temporary.unlink(missing_ok=True)
+        if temp is not None:
+            temp.unlink(missing_ok=True)

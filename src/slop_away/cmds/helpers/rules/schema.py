@@ -7,7 +7,7 @@ from typing import Any
 import regex  # type: ignore[import-untyped]
 import yaml  # type: ignore[import-untyped]
 
-from slop_away.package_types import PackageError
+from slop_away.utils.exceptions import PackageError
 
 
 class RuleLoader(yaml.SafeLoader):
@@ -166,12 +166,12 @@ def _token(value: Any, flags: int) -> SequenceToken:
     )
 
 
-def read_rule(code: str, source: bytes) -> Rule:
+def read_rule(code: str, src: bytes) -> Rule:
     """Read a supported Vale rule.
 
     Args:
         code: The package and rule name.
-        source: The UTF-8 YAML rule.
+        src: The UTF-8 YAML rule.
 
     Returns:
         The checked rule.
@@ -180,7 +180,7 @@ def read_rule(code: str, source: bytes) -> Rule:
         PackageError: The rule is invalid or unsupported.
     """
     try:
-        return _read(code, source)
+        return _read(code, src)
     except (
         ValueError,
         TypeError,
@@ -191,12 +191,12 @@ def read_rule(code: str, source: bytes) -> Rule:
         raise PackageError(f"{code}: {error}") from error
 
 
-def _read(code: str, source: bytes) -> Rule:
+def _read(code: str, src: bytes) -> Rule:
     """Check the rule fields.
 
     Args:
         code: The rule code.
-        source: The YAML rule.
+        src: The YAML rule.
 
     Returns:
         The checked rule.
@@ -206,7 +206,7 @@ def _read(code: str, source: bytes) -> Rule:
     """
     documents = [
         item
-        for item in yaml.load_all(source.decode("utf-8"), Loader=RuleLoader)
+        for item in yaml.load_all(src.decode("utf-8"), Loader=RuleLoader)
         if item is not None
     ]
     if len(documents) != 1 or not isinstance(documents[0], dict):
@@ -235,8 +235,7 @@ def _read(code: str, source: bytes) -> Rule:
         raise ValueError(f"Unsupported rule type {kind!r}.")
     if data.keys() - (common | fields[kind]):
         raise ValueError(
-            "Unsupported fields: "
-            f"{sorted(data.keys() - (common | fields[kind]))}."
+            f"Unsupported fields: {sorted(data.keys() - (common | fields[kind]))}."
         )
     for key in ("ignorecase", "nonword", "append"):
         if key in data and type(data[key]) is not bool:
@@ -276,9 +275,7 @@ def _read(code: str, source: bytes) -> Rule:
         raise ValueError("Unsupported action fields.")
     if action and action.get("name") not in {"replace", "remove"}:
         raise ValueError("Unsupported rule action.")
-    flags = regex.MULTILINE | (
-        regex.IGNORECASE if data.get("ignorecase") else 0
-    )
+    flags = regex.MULTILINE | (regex.IGNORECASE if data.get("ignorecase") else 0)
     bounded = not data.get("nonword", False)
     patterns: list[Any] = []
     swaps: tuple[str, ...] = ()
@@ -316,11 +313,7 @@ def _read(code: str, source: bytes) -> Rule:
             raise ValueError("Expected consistent occurrence limits.")
     else:
         conditions = data.get("tokens")
-        if (
-            not isinstance(conditions, list)
-            or not conditions
-            or len(conditions) > 64
-        ):
+        if not isinstance(conditions, list) or not conditions or len(conditions) > 64:
             raise ValueError("Expected 1 to 64 sequence tokens.")
         sequence = tuple(_token(token, flags) for token in conditions)
         if not any(token.pattern is not None for token in sequence):
@@ -347,16 +340,16 @@ def _read(code: str, source: bytes) -> Rule:
         ):
             raise ValueError("Replacement requests an absent capture group.")
     return Rule(
-        code,
-        kind,
-        message,
-        tuple(scopes),
-        tuple(patterns),
-        swaps,
-        sequence,
-        exceptions,
-        minimum,
-        maximum,
-        limit,
-        action.get("name", ""),
+        code=code,
+        kind=kind,
+        message=message,
+        scopes=tuple(scopes),
+        patterns=tuple(patterns),
+        swaps=swaps,
+        sequence=sequence,
+        exceptions=exceptions,
+        minimum=minimum,
+        maximum=maximum,
+        limit=limit,
+        action=action.get("name", ""),
     )

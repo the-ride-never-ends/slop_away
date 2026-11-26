@@ -168,11 +168,7 @@ def _blocks(
         start, end = (starts[index] for index in token.map)
         visible = characters[start:end].copy()
         block_kind = (
-            "list"
-            if depth
-            else "paragraph"
-            if token.type == "html_block"
-            else kind
+            "list" if depth else "paragraph" if token.type == "html_block" else kind
         )
         prefix = r"(?m)^[ \t]*(?:>[ \t]*)*"
         if block_kind == "heading":
