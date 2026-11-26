@@ -108,6 +108,6 @@ def file_case(tmp_path):
 def test_file_order(file_case):
     """GIVEN duplicate paths WHEN checked THEN return sorted findings once."""
     paths, config, expected = file_case
-    findings = check_files(paths, config)
+    findings = check_files(paths=paths, config=config)
     actual = [(item.path, item.code) for item in findings]
     assert actual == expected

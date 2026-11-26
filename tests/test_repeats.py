@@ -75,8 +75,7 @@ def repeat_case(tmp_path, request):
         (tmp_path / path).write_text(text, encoding="utf-8")
     config = Config(root=tmp_path, select=["VRB005"], profiles=profiles)
     expected = [
-        (Path(path), code, line, column)
-        for path, code, line, column in records
+        (Path(path), code, line, column) for path, code, line, column in records
     ]
     return paths, config, expected
 
@@ -84,8 +83,6 @@ def repeat_case(tmp_path, request):
 def test_file_repeats(repeat_case):
     """GIVEN selected files WHEN checked THEN report later repeats."""
     paths, config, expected = repeat_case
-    findings = check_files(paths, config)
-    actual = [
-        (item.path, item.code, item.line, item.column) for item in findings
-    ]
+    findings = check_files(paths=paths, config=config)
+    actual = [(item.path, item.code, item.line, item.column) for item in findings]
     assert actual == expected

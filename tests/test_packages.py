@@ -19,9 +19,7 @@ from tests.harnesses import CliHarness
 from tests.package_steps import DELVE
 
 
-@pytest.fixture(
-    params=["test-pkg/", "styles/test-pkg/", "test-pkg/styles/test-pkg/"]
-)
+@pytest.fixture(params=["test-pkg/", "styles/test-pkg/", "test-pkg/styles/test-pkg/"])
 def layout_case(request, tmp_path, package_server):
     """GIVEN a supported layout WHEN synced THEN supply its rules."""
     package_server.store("test-pkg", {request.param + "Delve.yml": DELVE})
@@ -57,9 +55,7 @@ def test_package_layout(layout_case):
 def bad_archive(request, tmp_path, package_server):
     """GIVEN an invalid archive WHEN synced THEN reject its contents."""
     package_server.store("test-pkg", request.param)
-    return Config(
-        root=tmp_path, packages=[package_server.url("test-pkg")]
-    ), "test-pkg"
+    return Config(root=tmp_path, packages=[package_server.url("test-pkg")]), "test-pkg"
 
 
 def test_invalid_archive(bad_archive):
@@ -75,24 +71,15 @@ def test_invalid_archive(bad_archive):
         b"extends: script\nmessage: Bad.\n",
         b"extends: existence\nmessage: Bad.\ntokens: ['[']\n",
         b"extends: existence\nmessage: Bad.\ntokens: [delve]\nunknown: true\n",
-        (
-            b"extends: existence\nmessage: Bad.\n"
-            b"tokens: [delve]\ntokens: [other]\n"
-        ),
-        (
-            b"extends: existence\nmessage: Bad.\n"
-            b"tokens: [delve]\naction: {name: edit}\n"
-        ),
+        (b"extends: existence\nmessage: Bad.\ntokens: [delve]\ntokens: [other]\n"),
+        (b"extends: existence\nmessage: Bad.\ntokens: [delve]\naction: {name: edit}\n"),
         b"extends: existence\nmessage: Bad.\ntokens: [delve]\nscope: table\n",
         b"extends: existence\nmessage: '%[2]s'\ntokens: [delve]\n",
         b"extends: substitution\nmessage: '%s'\nswap: {delve: '$1'}\n",
         b"extends: occurrence\nmessage: Bad.\ntoken: very\nmin: 3\nmax: 1\n",
         b"extends: occurrence\nmessage: Bad.\ntoken: very\nmax: true\n",
         b"extends: sequence\nmessage: Bad.\ntokens: [{tag: NN}]\n",
-        (
-            b"extends: sequence\nmessage: Bad.\n"
-            b"tokens: [{pattern: delve, skip: -1}]\n"
-        ),
+        (b"extends: sequence\nmessage: Bad.\ntokens: [{pattern: delve, skip: -1}]\n"),
         b"extends: existence\nmessage: Bad.\ntokens: ['a*']\n",
         b"- not a rule\n",
         b"\xff",
@@ -130,9 +117,7 @@ def invalid_zip(request, tmp_path, package_server):
                 archive.writestr("test-pkg/Delve.yml", DELVE)
     data = b"invalid" if request.param == "not-zip" else output.getvalue()
     (package_server.root / "test-pkg.zip").write_bytes(data)
-    return Config(
-        root=tmp_path, packages=[package_server.url("test-pkg")]
-    ), "test-pkg"
+    return Config(root=tmp_path, packages=[package_server.url("test-pkg")]), "test-pkg"
 
 
 def test_invalid_zip(invalid_zip):
@@ -187,9 +172,7 @@ def test_sync_validates_all_downloads_before_publication(multiple_packages):
     assert path.read_bytes() == expected
 
 
-@pytest.fixture(
-    params=["hash", "url", "version", "extra", "missing", "broken"]
-)
+@pytest.fixture(params=["hash", "url", "version", "extra", "missing", "broken"])
 def corrupt_cache(request, tmp_path, package_server):
     """GIVEN a changed cache WHEN checked THEN reject the cache."""
     package_server.store("test-pkg", {"test-pkg/Delve.yml": DELVE})
@@ -303,7 +286,7 @@ def test_unknown_rule_selector(unknown_selector):
     """GIVEN an unknown rule WHEN checked THEN name the invalid selector."""
     config, expected = unknown_selector
     with pytest.raises(PackageError) as error:
-        check_files([], config)
+        check_files(paths=[], config=config)
     assert expected in str(error.value)
 
 

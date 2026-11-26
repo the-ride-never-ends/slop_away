@@ -5,8 +5,8 @@ from functools import cache
 from string import punctuation
 from typing import TYPE_CHECKING, Protocol
 
-from slop_away.markdown import Projection
-from slop_away.text import word_matches
+from slop_away.utils.markdown import Projection
+from slop_away.utils.text import word_matches
 
 SUBJECT = {"nsubj", "nsubjpass", "csubj", "csubjpass", "nsubj:pass"}
 
@@ -103,29 +103,29 @@ def prose_text(projection: Projection) -> Projection:
     """
     characters: list[str] = []
     offsets: list[int] = []
-    index = 0
-    while index < len(projection.text):
-        char = projection.text[index]
+    idx = 0
+    while idx < len(projection.text):
+        char = projection.text[idx]
         if (
             char == "\\"
-            and index + 1 < len(projection.text)
-            and projection.text[index + 1] in punctuation
+            and idx + 1 < len(projection.text)
+            and projection.text[idx + 1] in punctuation
         ):
-            index += 1
-            char = projection.text[index]
+            idx += 1
+            char = projection.text[idx]
         elif char in "*_~":
-            index += 1
+            idx += 1
             continue
         elif char in "[]":
             char = " "
         if char.isspace():
             char = " "
             if characters and characters[-1] == " ":
-                index += 1
+                idx += 1
                 continue
         characters.append("'" if char == "’" else char)
-        offsets.append(projection.offsets[index])
-        index += 1
+        offsets.append(projection.offsets[idx])
+        idx += 1
     return Projection("".join(characters), tuple(offsets))
 
 
@@ -157,15 +157,15 @@ class SpacyParser:
                 continue
             tokens = tuple(
                 ParsedToken(
-                    token.text,
-                    token.lemma_,
-                    token.pos_,
-                    token.tag_,
-                    token.dep_,
-                    token.i,
-                    token.head.i,
-                    plain.offsets[token.idx],
-                    plain.offsets[token.idx + len(token.text) - 1] + 1,
+                    text=token.text,
+                    lemma=token.lemma_,
+                    pos=token.pos_,
+                    tag=token.tag_,
+                    dependency=token.dep_,
+                    index=token.i,
+                    head=token.head.i,
+                    offset=plain.offsets[token.idx],
+                    end=plain.offsets[token.idx + len(token.text) - 1] + 1,
                 )
                 for token in span
                 if not token.is_space

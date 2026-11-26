@@ -4,14 +4,14 @@ import re
 from itertools import pairwise
 from pathlib import Path
 
+from slop_away.cmds.helpers.external import swap_edits
+from slop_away.cmds.helpers.packages import load_rules
+from slop_away.cmds.helpers.rules.schema import Rule
+from slop_away.cmds.helpers.rules.verbosity import FILLER
 from slop_away.config import Config
-from slop_away.edits import Edit, propose_edit
-from slop_away.external import swap_edits
-from slop_away.markdown import Document, parse_document
-from slop_away.packages import load_rules
-from slop_away.rule_schema import Rule
-from slop_away.text import word_matches
-from slop_away.verbosity import FILLER
+from slop_away.utils.edits import Edit, propose_edit
+from slop_away.utils.markdown import Document, parse_document
+from slop_away.utils.text import word_matches
 
 NEGATIVES = {
     "aren't": "are not",
@@ -38,6 +38,41 @@ NEGATIVES = {
 HIDDEN = frozenset(
     "\u200b\ufeff\u202a\u202b\u202c\u202d\u202e"
     "\u2066\u2067\u2068\u2069\u200e\u200f\u061c"
+)
+
+SUFFIX_EXPANSION_SUBJECTS = (
+    ("'re", " are", {"you", "we", "they"}),
+    (
+        "'ve",
+        " have",
+        {
+            "i",
+            "you",
+            "we",
+            "they",
+            "could",
+            "should",
+            "would",
+            "might",
+            "must",
+        },
+    ),
+    (
+        "'ll",
+        " will",
+        {
+            "i",
+            "you",
+            "he",
+            "she",
+            "it",
+            "we",
+            "they",
+            "who",
+            "what",
+            "there",
+        },
+    ),
 )
 
 
@@ -72,40 +107,7 @@ def _expansion(word: str) -> str | None:
         return _case(word, NEGATIVES[normalized])
     if normalized == "i'm":
         return "I AM" if word.isupper() else "I am"
-    for suffix, expansion, subjects in (
-        ("'re", " are", {"you", "we", "they"}),
-        (
-            "'ve",
-            " have",
-            {
-                "i",
-                "you",
-                "we",
-                "they",
-                "could",
-                "should",
-                "would",
-                "might",
-                "must",
-            },
-        ),
-        (
-            "'ll",
-            " will",
-            {
-                "i",
-                "you",
-                "he",
-                "she",
-                "it",
-                "we",
-                "they",
-                "who",
-                "what",
-                "there",
-            },
-        ),
-    ):
+    for suffix, expansion, subjects in SUFFIX_EXPANSION_SUBJECTS:
         subject = normalized.removesuffix(suffix)
         if normalized.endswith(suffix) and subject in subjects:
             preferred = ("I" if subject == "i" else subject) + expansion
@@ -113,22 +115,28 @@ def _expansion(word: str) -> str | None:
     return None
 
 
-def _native(text: str, document: Document, config: Config) -> list[Edit]:
+def _native(text: str, doc: Document, config: Config) -> list[Edit]:
     """Find native prose fixes.
 
     Args:
         text: The source text.
-        document: The parsed document.
+        doc: The parsed document.
         config: The document settings.
 
     Returns:
         The proposed fixes.
     """
     edits = []
-    for block in document.blocks:
+    for block in doc.blocks:
         prose = block.prose
         for match in re.finditer(r"(?<=\S)[ \t]{2,}(?=\S)", prose.text):
-            edit = propose_edit(text, prose, match.start(), match.end(), " ")
+            edit = propose_edit(
+                text=text,
+                prose=prose,
+                start=match.start(),
+                end=match.end(),
+                replacement=" ",
+            )
             if edit is not None:
                 edits.append(edit)
         if config.enabled("STE004"):
@@ -136,7 +144,11 @@ def _native(text: str, document: Document, config: Config) -> list[Edit]:
                 expansion = _expansion(match[0])
                 if expansion is not None:
                     edit = propose_edit(
-                        text, prose, match.start(), match.end(), expansion
+                        text=text,
+                        prose=prose,
+                        start=match.start(),
+                        end=match.end(),
+                        replacement=expansion,
                     )
                     if edit is not None:
                         edits.append(edit)
@@ -154,27 +166,25 @@ def _native(text: str, document: Document, config: Config) -> list[Edit]:
     return edits
 
 
-def _unsafe(text: str, document: Document, config: Config) -> list[Edit]:
+def _unsafe(text: str, doc: Document, config: Config) -> list[Edit]:
     """Find native changes that can change meaning.
 
     Args:
         text: The source text.
-        document: The parsed document.
+        doc: The parsed document.
         config: The document settings.
 
     Returns:
         The proposed unsafe fixes.
     """
     edits = []
-    for block in document.blocks:
+    for block in doc.blocks:
         prose = block.prose
         if config.enabled("VRB001"):
             for match in FILLER.finditer(prose.text):
                 if any(char in match[0] for char in "*_~"):
                     continue
-                replacement = (
-                    "to" if match[0].casefold().startswith("in") else ""
-                )
+                replacement = "to" if match[0].casefold().startswith("in") else ""
                 end = match.end()
                 if not replacement:
                     while end < len(prose.text) and prose.text[end] in " \t":
@@ -183,15 +193,15 @@ def _unsafe(text: str, document: Document, config: Config) -> list[Edit]:
                 initial = not prefix or prefix[-1] in ".!?"
                 if replacement:
                     replacement = _case(match[0], replacement)
-                elif (
-                    initial
-                    and end < len(prose.text)
-                    and prose.text[end].isalpha()
-                ):
+                elif initial and end < len(prose.text) and prose.text[end].isalpha():
                     replacement = prose.text[end].upper()
                     end += 1
                 edit = propose_edit(
-                    text, prose, match.start(), end, replacement
+                    text=text,
+                    prose=prose,
+                    start=match.start(),
+                    end=end,
+                    replacement=replacement,
                 )
                 if edit is not None:
                     edits.append(edit)
@@ -200,19 +210,17 @@ def _unsafe(text: str, document: Document, config: Config) -> list[Edit]:
                 for synonym in synonyms:
                     pattern = re.compile(
                         r"(?<!\w)"
-                        + r"\s+".join(
-                            re.escape(part) for part in synonym.split()
-                        )
+                        + r"\s+".join(re.escape(part) for part in synonym.split())
                         + r"(?!\w)",
                         re.IGNORECASE,
                     )
                     for match in pattern.finditer(prose.text):
                         edit = propose_edit(
-                            text,
-                            prose,
-                            match.start(),
-                            match.end(),
-                            _case(match[0], preferred),
+                            text=text,
+                            prose=prose,
+                            start=match.start(),
+                            end=match.end(),
+                            replacement=_case(match[0], preferred),
                         )
                         if edit is not None:
                             edits.append(edit)
@@ -220,6 +228,7 @@ def _unsafe(text: str, document: Document, config: Config) -> list[Edit]:
 
 
 def fix_text(
+    *,
     text: str,
     path: Path,
     config: Config,
@@ -244,39 +253,39 @@ def fix_text(
     settings = config.for_path(path)
     seen = {text}
     for _ in range(20):
-        document = parse_document(text)
+        doc = parse_document(text)
         edits: list[Edit] = []
         if settings.enabled("INJ004"):
-            for prose in (document.prose, *document.comments):
-                for index, character in enumerate(prose.text):
+            for prose in (doc.prose, *doc.comments):
+                for idx, character in enumerate(prose.text):
                     if character in HIDDEN:
-                        edit = propose_edit(text, prose, index, index + 1, "")
+                        edit = propose_edit(
+                            text=text,
+                            prose=prose,
+                            start=idx,
+                            end=idx + 1,
+                            replacement="",
+                        )
                         if edit is not None:
                             edits.append(edit)
         if path.name not in settings.instruction_files and not edits:
-            edits.extend(_native(text, document, settings))
+            edits.extend(_native(text, doc, settings))
             if unsafe and not edits:
-                edits.extend(_unsafe(text, document, settings))
-                edits.extend(swap_edits(text, document, settings, rules))
+                edits.extend(_unsafe(text, doc, settings))
+                edits.extend(
+                    swap_edits(text=text, doc=doc, config=settings, rules=rules)
+                )
         ordered = sorted(
-            {
-                edit
-                for edit in edits
-                if text[edit.start : edit.end] != edit.replacement
-            }
+            {edit for edit in edits if text[edit.start : edit.end] != edit.replacement}
         )
         if not ordered:
             return text
         for left, right in pairwise(ordered):
             if left.end > right.start:
-                raise ValueError(
-                    "Fixes overlap; select one rule before fixing."
-                )
+                raise ValueError("Fixes overlap; select one rule before fixing.")
         result = text
         for edit in reversed(ordered):
-            result = (
-                result[: edit.start] + edit.replacement + result[edit.end :]
-            )
+            result = result[: edit.start] + edit.replacement + result[edit.end :]
         if result in seen:
             raise ValueError("Fixes form a cycle; change the selected rules.")
         seen.add(result)
@@ -285,7 +294,7 @@ def fix_text(
 
 
 def apply_fixes(
-    text: str, path: str | Path, config: Config, unsafe: bool = False
+    *, text: str, path: str | Path, config: Config, unsafe: bool = False
 ) -> str:
     """Apply supported fixes to Markdown text.
 
@@ -300,8 +309,11 @@ def apply_fixes(
 
     Raises:
         ValueError: An input, package cache, or fix plan is invalid.
-        TypeError: The text or unsafe option has the wrong type.
     """
-    if not isinstance(text, str) or not isinstance(unsafe, bool):
-        raise TypeError("Expected text and a boolean unsafe option.")
-    return fix_text(text, Path(path), config, unsafe, load_rules(config))
+    return fix_text(
+        text=text,
+        path=Path(path),
+        config=config,
+        unsafe=unsafe,
+        rules=load_rules(config),
+    )

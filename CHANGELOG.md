@@ -7,6 +7,8 @@ Headers will be commit hashes.
 ## [Unreleased]
 
 ### Changed
+- Select both input files in the batch validation test. Check that invalid
+  UTF-8 prevents changes to the first file.
 - Add a seeded draw of 30 English source documents. Record candidates,
   source licenses, hashes, and all rejected draws.
 - Add planted-defect and layout properties from the corpus.

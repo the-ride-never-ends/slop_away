@@ -10,9 +10,7 @@ from tests.harnesses import HookHarness
 @pytest.fixture
 def hook_cli(cli):
     """GIVEN project hooks WHEN events run THEN use the test project."""
-    init_project(
-        cli.root, skip_config=True, skip_pre_commit=True, skip_ci=True
-    )
+    init_project(root=cli.root, skip_config=True, skip_pre_commit=True, skip_ci=True)
     return HookHarness(cli.root, {"CLAUDE_PROJECT_DIR": str(cli.root)})
 
 
@@ -29,9 +27,7 @@ def absent_file(tmp_path, path):
 
 
 @when(
-    parsers.parse(
-        'the post-edit hook script runs with a {tool} event for "{path}"'
-    ),
+    parsers.parse('the post-edit hook script runs with a {tool} event for "{path}"'),
     target_fixture="result",
 )
 def edited_hook(hook_cli, tool, path):
@@ -60,9 +56,7 @@ def stopped_hook(hook_cli, active):
 
 
 @when(
-    parsers.parse(
-        'the pre-bash hook script runs with the command "{command}"'
-    ),
+    parsers.parse('the pre-bash hook script runs with the command "{command}"'),
     target_fixture="result",
 )
 def command_hook(hook_cli, command):

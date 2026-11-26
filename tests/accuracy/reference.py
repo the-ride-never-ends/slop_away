@@ -1,8 +1,8 @@
 """Label external prose with an independent parser."""
 
-from slop_away.markdown import parse_document
-from slop_away.parsing import prose_text
-from slop_away.text import split_sentences, word_matches
+from slop_away.cmds.helpers.rules.parsing import prose_text
+from slop_away.utils.markdown import parse_document
+from slop_away.utils.text import split_sentences, word_matches
 from tests.accuracy.setup_models import DIRECTORY, POLICY, verify_models
 from tests.generation.documents import DOCUMENTS
 
@@ -28,8 +28,7 @@ def _directive(words, root):
         head = next(item for item in words if item.id == word.head)
         children = [item for item in words if item.head == head.id]
         if any(
-            item.deprel == "aux"
-            and item.lemma.lower() in {"must", "should", "shall"}
+            item.deprel == "aux" and item.lemma.lower() in {"must", "should", "shall"}
             for item in children
         ):
             return True
@@ -37,11 +36,7 @@ def _directive(words, root):
             item.deprel == "xcomp" for item in children
         ):
             return True
-    if (
-        len(words) > 1
-        and words[0].text == "IMPORTANT"
-        and words[1].text == ":"
-    ):
+    if len(words) > 1 and words[0].text == "IMPORTANT" and words[1].text == ":":
         return True
     subjects = [
         word

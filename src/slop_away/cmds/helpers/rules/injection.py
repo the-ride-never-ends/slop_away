@@ -7,8 +7,8 @@ from datetime import date
 from pathlib import Path
 
 from slop_away.config import Config
-from slop_away.findings import Finding, make_finding
-from slop_away.markdown import Document, Projection
+from slop_away.utils.findings import Finding, make_finding
+from slop_away.utils.markdown import Document, Projection
 
 GAP = r"[*_~]*\s+[*_~]*"
 DIRECTIVE = re.compile(
@@ -17,9 +17,7 @@ DIRECTIVE = re.compile(
     rf"|\bdo{GAP}not{GAP}\w+|\bimportant[*_~]*\s*:[*_~]*\s*\w+",
     re.IGNORECASE,
 )
-ROLE = re.compile(
-    r"\b(?:system|assistant|user|developer)[*_~]*\s*:", re.IGNORECASE
-)
+ROLE = re.compile(r"\b(?:system|assistant|user|developer)[*_~]*\s*:", re.IGNORECASE)
 ACTION = re.compile(
     r"^[ \t]*(?:[-*+]\s+\[[ xX]\]|TODO\b|Next\s+step\b)[^\n]*",
     re.IGNORECASE | re.MULTILINE,
@@ -104,36 +102,36 @@ def _context(projection: Projection, start: int) -> str:
     return source[left:right]
 
 
-def _prose(document: Document) -> Projection:
+def _prose(doc: Document) -> Projection:
     """Get prose with stable paragraph boundaries.
 
     Args:
-        document: The source document.
+        doc: The source document.
 
     Returns:
         Prose with source offsets.
     """
-    characters = list(document.prose.text)
-    indices = {offset: index for index, offset in enumerate(document.prose.offsets)}
-    for block in document.blocks:
+    characters = list(doc.prose.text)
+    indices = {offset: idx for idx, offset in enumerate(doc.prose.offsets)}
+    for block in doc.blocks:
         if not block.prose.offsets:
             continue
         start = indices[block.prose.offsets[0]]
         end = indices[block.prose.offsets[-1]] + 1
-        source = document.prose.text[start:end]
+        source = doc.prose.text[start:end]
         right = len(source.rstrip())
-        for index in range(start, start + right):
-            if characters[index] in "\r\n":
-                characters[index] = " "
+        for idx in range(start, start + right):
+            if characters[idx] in "\r\n":
+                characters[idx] = " "
         if block.kind == "list":
             marker = re.match(r"[ \t]*[-*+](?=\s)", source)
             if marker:
                 characters[start + marker.end() - 1] = "-"
-    return Projection("".join(characters), document.prose.offsets)
+    return Projection("".join(characters), doc.prose.offsets)
 
 
 def scan_injection(
-    text: str, path: Path, config: Config, document: Document
+    *, text: str, path: Path, config: Config, doc: Document
 ) -> list[Finding]:
     """Check the injection rules.
 
@@ -148,8 +146,8 @@ def scan_injection(
     """
     findings: list[Finding] = []
     instruction = path.name in config.instruction_files
-    prose = _prose(document)
-    for projection in (prose, *document.comments):
+    prose = _prose(doc)
+    for projection in (prose, *doc.comments):
         comment = projection is not prose
         matches: list[tuple[str, int]] = []
         if comment or not instruction:
@@ -158,29 +156,27 @@ def scan_injection(
                 (code, match.start()) for match in _directives(projection.text)
             )
         matches.extend(
-            ("INJ002", match.start())
-            for match in ROLE.finditer(projection.text)
+            ("INJ002", match.start()) for match in ROLE.finditer(projection.text)
         )
         for match in ACTION.finditer(projection.text):
             if not _dated(match.group()) and not STATUS.search(match.group()):
                 matches.append(("INJ003", match.start()))
         matches.extend(
-            ("INJ004", index)
-            for index, char in enumerate(projection.text)
+            ("INJ004", idx)
+            for idx, char in enumerate(projection.text)
             if unicodedata.category(char) == "Cf"
         )
-        for code, index in matches:
+        for code, idx in matches:
             if config.enabled(code):
                 findings.append(
                     make_finding(
-                        code,
-                        projection.offsets[index],
-                        text,
-                        path,
-                        _context(projection, index),
-                        *MESSAGES[code],
+                        code=code,
+                        offset=projection.offsets[idx],
+                        text=text,
+                        path=path,
+                        context=_context(projection, idx),
+                        message=MESSAGES[code][0],
+                        hint=MESSAGES[code][1],
                     )
                 )
-    return sorted(
-        findings, key=lambda item: (item.line, item.column, item.code)
-    )
+    return sorted(findings, key=lambda item: (item.line, item.column, item.code))

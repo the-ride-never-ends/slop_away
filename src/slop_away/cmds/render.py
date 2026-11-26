@@ -4,7 +4,9 @@ import json
 from collections.abc import Sequence
 from dataclasses import asdict
 
-from slop_away.findings import Finding
+from slop_away.utils.findings import Finding
+
+OUTPUT_FORMATS = {"text", "agent", "json", "github"}
 
 
 def _escape(value: str, property: bool = False) -> str:
@@ -23,9 +25,7 @@ def _escape(value: str, property: bool = False) -> str:
     return value
 
 
-def render_findings(
-    findings: Sequence[Finding], output_format: str = "text"
-) -> str:
+def render_findings(findings: Sequence[Finding], output_format: str = "text") -> str:
     """Format a finding report.
 
     Args:
@@ -38,31 +38,28 @@ def render_findings(
     Raises:
         ValueError: The output format is unknown.
     """
-    if output_format not in {"text", "agent", "json", "github"}:
+    if output_format not in OUTPUT_FORMATS:
         raise ValueError(f"Unknown output format {output_format!r}.")
     if output_format == "json":
-        records = [
-            {**asdict(finding), "path": finding.path.as_posix()}
-            for finding in findings
-        ]
+        records = [{**asdict(f), "path": f.path.as_posix()} for f in findings]
         return json.dumps(records, ensure_ascii=False, indent=2) + "\n"
     lines = []
     for finding in findings:
         path = finding.path.as_posix()
         location = f"{path}:{finding.line}:{finding.column}"
-        if output_format == "text":
-            lines.append(f"{location}: {finding.code} {finding.message}")
-        elif output_format == "agent":
-            lines.append(
-                f"{finding.code} {location} {finding.message} "
-                f"Fix: {finding.hint}"
-            )
-        else:
-            lines.append(
-                f"::error file={_escape(path, True)},line={finding.line},"
-                f"col={finding.column},title={_escape(finding.code, True)}"
-                f"::{_escape(finding.message)}"
-            )
+        match output_format:
+            case "text":
+                lines.append(f"{location}: {finding.code} {finding.message}")
+            case "agent":
+                lines.append(
+                    f"{finding.code} {location} {finding.message} Fix: {finding.hint}"
+                )
+            case "github":
+                lines.append(
+                    f"::error file={_escape(path, True)},line={finding.line},"
+                    f"col={finding.column},title={_escape(finding.code, True)}"
+                    f"::{_escape(finding.message)}"
+                )
     if lines:
         return "\n".join(lines) + "\n"
     else:

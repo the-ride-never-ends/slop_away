@@ -41,7 +41,7 @@ def test_init_conflicts_preserve_project(conflicting_target):
     """GIVEN a target conflict WHEN initialized THEN keep the whole tree."""
     root, expected = conflicting_target
     with pytest.raises(ValueError):
-        init_project(root)
+        init_project(root=root)
     assert snapshot(root) == expected
 
 
@@ -76,7 +76,7 @@ def test_init_rejects_invalid_merge_data(invalid_merge):
     """GIVEN bad existing settings WHEN initialized THEN write no targets."""
     root, expected = invalid_merge
     with pytest.raises(ValueError):
-        init_project(root)
+        init_project(root=root)
     assert snapshot(root) == expected
 
 
@@ -99,7 +99,7 @@ def test_init_rejects_unsafe_target_paths(unsafe_target):
     """GIVEN unsafe target paths WHEN initialized THEN write no files."""
     root, expected = unsafe_target
     with pytest.raises(ValueError):
-        init_project(root)
+        init_project(root=root)
     assert snapshot(root) == expected
 
 
@@ -133,7 +133,7 @@ def merged_settings(tmp_path):
 def test_init_preserves_existing_claude_hooks(merged_settings):
     """GIVEN existing hooks WHEN initialized THEN keep hooks and access."""
     root, path, hook, expected = merged_settings
-    init_project(root)
+    init_project(root=root)
     data = json.loads(path.read_text())
     retained = hook in data["hooks"]["PostToolUse"]
     mode = path.stat().st_mode & 0o777
@@ -166,7 +166,7 @@ def anchored_config(tmp_path):
 def test_init_preserves_yaml_merge_values(anchored_config):
     """GIVEN YAML merge values WHEN initialized THEN preserve the hook."""
     root, path, expected = anchored_config
-    init_project(root)
+    init_project(root=root)
     actual = yaml.safe_load(path.read_text())["repos"][0]["hooks"][0]
     assert actual == expected
 
@@ -174,7 +174,7 @@ def test_init_preserves_yaml_merge_values(anchored_config):
 @pytest.fixture
 def existing_hooks(tmp_path):
     """GIVEN a prior setup WHEN adding checks THEN avoid duplicate IDs."""
-    init_project(tmp_path)
+    init_project(root=tmp_path)
     path = tmp_path / ".pre-commit-config.yaml"
     expected = yaml.safe_load(path.read_text())
     return tmp_path, path, expected
@@ -183,7 +183,7 @@ def existing_hooks(tmp_path):
 def test_init_merges_without_duplicate_hooks(existing_hooks):
     """GIVEN existing entries WHEN merged again THEN keep the same config."""
     root, path, expected = existing_hooks
-    init_project(root, skip_config=True, skip_ci=True, skip_hooks=True)
+    init_project(root=root, skip_config=True, skip_ci=True, skip_hooks=True)
     actual = yaml.safe_load(path.read_text())
     assert actual == expected
 
@@ -199,7 +199,7 @@ def ignored_cache(tmp_path):
 def test_init_preserves_gitignore_text(ignored_cache):
     """GIVEN existing ignores WHEN initialized THEN append the cache path."""
     root, path, expected = ignored_cache
-    init_project(root)
+    init_project(root=root)
     assert path.read_bytes() == expected
 
 
@@ -212,7 +212,7 @@ def generated_hooks(cli):
 def test_generated_precommit_config_is_valid(generated_hooks):
     """GIVEN generated hooks WHEN validated THEN pass the config check."""
     cli, expected = generated_hooks
-    init_project(cli.root)
+    init_project(root=cli.root)
     result = cli.run(["pre-commit", "validate-config"])
     assert result.returncode == expected
 
@@ -232,7 +232,7 @@ def script_mode(request, tmp_path):
 def test_init_sets_script_permissions(script_mode):
     """GIVEN a new hook script WHEN initialized THEN permit execution."""
     root, name, expected = script_mode
-    init_project(root)
+    init_project(root=root)
     actual = (root / ".claude/hooks" / name).stat().st_mode & 0o777
     assert actual == expected
 
@@ -250,7 +250,7 @@ def hook_ids(tmp_path):
 def test_init_includes_required_integrations(hook_ids):
     """GIVEN project setup WHEN initialized THEN include all integrations."""
     root, expected = hook_ids
-    init_project(root)
+    init_project(root=root)
     data = yaml.safe_load((root / ".pre-commit-config.yaml").read_text())
     ids = [hook["id"] for repo in data["repos"] for hook in repo["hooks"]]
     actual = data["default_install_hook_types"], ids

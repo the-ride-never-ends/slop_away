@@ -5,12 +5,55 @@ import shlex
 from collections.abc import Iterator
 from pathlib import PurePosixPath
 
+MAX_CMD_DEPTH = 4
 
-def _segments(command: str) -> Iterator[list[str]]:
+SHELL_RESERVED_WORDS = {
+    "if",
+    "then",
+    "else",
+    "elif",
+    "do",
+    "while",
+    "until",
+    "!",
+}
+
+COMMIT_ARGS = {
+    "--message",
+    "--file",
+    "--template",
+    "--reedit-message",
+    "--reuse-message",
+    "--author",
+    "--date",
+    "--cleanup",
+    "--pathspec-from-file",
+    "--trailer",
+    "--fixup",
+    "--squash",
+}
+
+ENV_OPTIONS = {"-u", "--unset", "-C", "--chdir"}
+
+SHELL_CMDS = {"env", "command", "exec"}
+
+SHELL_BINARIES = {"bash", "sh", "dash", "zsh"}
+
+SHELL_OPTIONS = {
+    "-c",
+    "-C",
+    "--git-dir",
+    "--work-tree",
+    "--namespace",
+    "--config-env",
+}
+
+
+def _segments(cmd: str) -> Iterator[list[str]]:
     """Read shell command segments.
 
     Args:
-        command: The shell source.
+        cmd: The shell source.
 
     Yields:
         Literal argument lists.
@@ -22,7 +65,7 @@ def _segments(command: str) -> Iterator[list[str]]:
     quote = ""
     escaped = False
     comment = False
-    for char in command:
+    for char in cmd:
         if comment:
             if char != "\n":
                 continue
@@ -55,56 +98,43 @@ def _segments(command: str) -> Iterator[list[str]]:
     yield shlex.split("".join(buffer))
 
 
-def _commit(arguments: list[str]) -> bool:
+def _commit(args: list[str]) -> bool:
     """Check commit arguments.
 
     Args:
-        arguments: The arguments after the commit subcommand.
+        args: The arguments after the commit subcommand.
 
     Returns:
         True if a hook skip option is present.
     """
-    values = {
-        "--message",
-        "--file",
-        "--template",
-        "--reedit-message",
-        "--reuse-message",
-        "--author",
-        "--date",
-        "--cleanup",
-        "--pathspec-from-file",
-        "--trailer",
-        "--fixup",
-        "--squash",
-    }
-    index = 0
-    while index < len(arguments):
-        value = arguments[index]
-        index += 1
+
+    idx = 0
+    while idx < len(args):
+        value = args[idx]
+        idx += 1
         if value == "--":
             return False
         if value == "--no-verify" or value.startswith("--no-verify="):
             return True
-        if value in values:
-            index += 1
+        if value in COMMIT_ARGS:
+            idx += 1
         elif value.startswith("-") and not value.startswith("--"):
             for offset, option in enumerate(value[1:], 1):
                 if option == "n":
                     return True
                 if option in "mFtcC":
-                    index += int(offset == len(value) - 1)
+                    idx += int(offset == len(value) - 1)
                     break
                 if option == "S":
                     break
     return False
 
 
-def _inspect(arguments: list[str], depth: int) -> bool:
+def _inspect(args: list[str], depth: int) -> bool:
     """Check a literal command invocation.
 
     Args:
-        arguments: The command arguments.
+        args: The command arguments.
         depth: The number of nested shell commands.
 
     Returns:
@@ -113,37 +143,28 @@ def _inspect(arguments: list[str], depth: int) -> bool:
     Raises:
         ValueError: Shell nesting exceeds the limit.
     """
-    if depth > 4:
-        raise ValueError("Shell command exceeds four nested command strings.")
-    index = 0
-    while index < len(arguments):
-        word = arguments[index]
+    if depth > MAX_CMD_DEPTH:
+        raise ValueError(
+            f"Shell command exceeds {MAX_CMD_DEPTH} nested command strings."
+        )
+    idx = 0
+    while idx < len(args):
+        word = args[idx]
         name = PurePosixPath(word).name
-        if re.match(r"[A-Za-z_][A-Za-z0-9_]*=", word) or word in {
-            "if",
-            "then",
-            "else",
-            "elif",
-            "do",
-            "while",
-            "until",
-            "!",
-        }:
-            index += 1
-        elif name in {"env", "command", "exec"}:
-            index += 1
-            while index < len(arguments) and arguments[index].startswith("-"):
-                option = arguments[index]
-                index += (
-                    2 if option in {"-u", "--unset", "-C", "--chdir"} else 1
-                )
+        if re.match(r"[A-Za-z_][A-Za-z0-9_]*=", word) or word in SHELL_RESERVED_WORDS:
+            idx += 1
+        elif name in SHELL_CMDS:
+            idx += 1
+            while idx < len(args) and args[idx].startswith("-"):
+                option = args[idx]
+                idx += 2 if option in ENV_OPTIONS else 1
         else:
             break
-    if index >= len(arguments):
+    if idx >= len(args):
         return False
-    name = PurePosixPath(arguments[index]).name
-    rest = arguments[index + 1 :]
-    if name in {"bash", "sh", "dash", "zsh"}:
+    name = PurePosixPath(args[idx]).name
+    rest = args[idx + 1 :]
+    if name in SHELL_BINARIES:
         for offset, option in enumerate(rest):
             if (
                 option.startswith("-")
@@ -158,45 +179,25 @@ def _inspect(arguments: list[str], depth: int) -> bool:
         return False
     if name != "git":
         return False
-    index = 0
-    while index < len(rest) and rest[index].startswith("-"):
-        option = rest[index]
-        index += (
-            2
-            if option
-            in {
-                "-c",
-                "-C",
-                "--git-dir",
-                "--work-tree",
-                "--namespace",
-                "--config-env",
-            }
-            else 1
-        )
-    return (
-        index < len(rest)
-        and rest[index] == "commit"
-        and _commit(rest[index + 1 :])
-    )
+    idx = 0
+    while idx < len(rest) and rest[idx].startswith("-"):
+        option = rest[idx]
+        idx += 2 if option in SHELL_OPTIONS else 1
+    return idx < len(rest) and rest[idx] == "commit" and _commit(rest[idx + 1 :])
 
 
-def guard_command(command: str) -> None:
+def guard_command(cmd: str) -> None:
     """Reject literal commands that skip commit hooks.
 
     Args:
-        command: The shell command to inspect.
+        cmd: The shell command to inspect.
 
     Raises:
         TypeError: The command is not text.
         ValueError: The command is empty, invalid, or skips commit hooks.
     """
-    if not isinstance(command, str):
-        raise TypeError("Expected shell command text.")
-    if not command.strip() or "\x00" in command:
-        raise ValueError("Expected a nonempty shell command without NUL.")
-    for segment in _segments(command):
-        if _inspect(segment, 0):
-            raise ValueError(
-                "Commit hooks must run; remove --no-verify or -n."
-            )
+    if not cmd.strip() or "\x00" in cmd:
+        raise ValueError(f"Expected a nonempty shell command without NUL. got '{cmd}'.")
+    for seg in _segments(cmd):
+        if _inspect(seg, 0):
+            raise ValueError("Commit hooks must run. Remove --no-verify or -n.")

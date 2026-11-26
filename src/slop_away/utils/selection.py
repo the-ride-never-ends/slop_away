@@ -102,7 +102,7 @@ class _Selection:
 
 
 def select_files(
-    paths: Sequence[str | Path], config: Config, force_exclude: bool = False
+    *, paths: Sequence[str | Path], config: Config, force_exclude: bool = False
 ) -> list[Path]:
     """Select Markdown files from project paths.
 
@@ -137,17 +137,11 @@ def select_files(
         matches = (
             [candidate]
             if candidate.exists()
-            else list(
-                config.root.glob(candidate.relative_to(config.root).as_posix())
-            )
+            else list(config.root.glob(candidate.relative_to(config.root).as_posix()))
         )
         if not matches:
             raise FileNotFoundError(f"Input path has no match: {item}")
-        if (
-            not force_exclude
-            and matches == [candidate]
-            and candidate.is_file()
-        ):
+        if not force_exclude and matches == [candidate] and candidate.is_file():
             if candidate.suffix == ".md":
                 selected.add(candidate)
             continue

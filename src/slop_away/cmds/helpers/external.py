@@ -4,14 +4,21 @@ import re
 from pathlib import Path
 from typing import Any
 
+from slop_away.cmds.helpers.rules.parsing import (
+    PARSER,
+    ParsedToken,
+    Sentence,
+    prose_text,
+)
+from slop_away.cmds.helpers.rules.schema import Rule, SequenceToken
 from slop_away.config import Config
-from slop_away.edits import Edit, propose_edit
-from slop_away.findings import Finding, make_finding
-from slop_away.markdown import Block, Document, Projection
-from slop_away.package_types import PackageError
-from slop_away.parsing import PARSER, ParsedToken, Sentence, prose_text
-from slop_away.rule_schema import Rule, SequenceToken
-from slop_away.text import split_sentences
+from slop_away.utils.edits import Edit, propose_edit
+from slop_away.utils.exceptions import PackageError
+from slop_away.utils.findings import Finding, make_finding
+from slop_away.utils.markdown import Block, Document, Projection
+from slop_away.utils.text import split_sentences
+
+MAX_STEPS = 100000
 
 
 def _scope(block: Block, scope: str) -> bool:
@@ -47,11 +54,7 @@ def _scopes(rule: Rule, document: Document) -> list[Projection]:
     result = []
     for block in document.blocks:
         matched = [scope for scope in positive if _scope(block, scope)]
-        if (
-            positive
-            and not matched
-            or any(_scope(block, scope) for scope in negative)
-        ):
+        if positive and not matched or any(_scope(block, scope) for scope in negative):
             continue
         prose = prose_text(block.prose)
         if any("sentence" in scope.split(".") for scope in matched):
@@ -74,7 +77,7 @@ def _message(template: str, values: list[str | int]) -> str:
     Raises:
         PackageError: The message requests an absent value.
     """
-    index = 0
+    idx = 0
 
     def replace(match: re.Match[str]) -> str:
         """Fill one message field.
@@ -85,15 +88,15 @@ def _message(template: str, values: list[str | int]) -> str:
         Returns:
             The field text.
         """
-        nonlocal index
+        nonlocal idx
         if match[0] == "%%":
             return "%"
         if match[1]:
-            index = int(match[1]) - 1
-        if index >= len(values):
+            idx = int(match[1]) - 1
+        if idx >= len(values):
             raise PackageError("Message requests an absent match value.")
-        value = values[index]
-        index += 1
+        value = values[idx]
+        idx += 1
         return str(value)
 
     return " ".join(
@@ -161,17 +164,13 @@ def _matches(
         for match in matches:
             values: list[str | int] = [match[0]]
             hint = (
-                "Remove this text."
-                if rule.action == "remove"
-                else "Revise this text."
+                "Remove this text." if rule.action == "remove" else "Revise this text."
             )
             if rule.kind == "substitution":
                 replacement = _replacement(match, rule.swaps[index])
                 values = [replacement, match[0]]
                 hint = f"Use {replacement!r}."
-            result.append(
-                (prose.offsets[match.start()], prose.text, values, hint)
-            )
+            result.append((prose.offsets[match.start()], prose.text, values, hint))
     return result
 
 
@@ -195,13 +194,13 @@ def _replacement(match: Any, template: str) -> str:
 
 
 def swap_edits(
-    text: str, document: Document, config: Config, rules: tuple[Rule, ...]
+    *, text: str, doc: Document, config: Config, rules: tuple[Rule, ...]
 ) -> list[Edit]:
     """Propose external word swaps.
 
     Args:
         text: The source text.
-        document: The parsed document.
+        doc: The parsed document.
         config: The document settings.
         rules: The configured rules.
 
@@ -216,7 +215,7 @@ def swap_edits(
         if rule.kind != "substitution" or not config.enabled(rule.code):
             continue
         try:
-            for prose in _scopes(rule, document):
+            for prose in _scopes(rule, doc):
                 for pattern, template in zip(rule.patterns, rule.swaps):
                     if "|" in template:
                         continue
@@ -224,18 +223,16 @@ def swap_edits(
                         if _except(rule, match[0]):
                             continue
                         edit = propose_edit(
-                            text,
-                            prose,
-                            match.start(),
-                            match.end(),
-                            _replacement(match, template),
+                            text=text,
+                            prose=prose,
+                            start=match.start(),
+                            end=match.end(),
+                            replacement=_replacement(match, template),
                         )
                         if edit is not None:
                             edits.append(edit)
-        except TimeoutError as error:
-            raise PackageError(
-                f"{rule.code}: pattern exceeds the time limit."
-            ) from error
+        except TimeoutError as e:
+            raise PackageError(f"{rule.code}: pattern exceeds the time limit.") from e
     return edits
 
 
@@ -279,12 +276,12 @@ def _sequence(
     steps = 0
 
     def visit(
-        index: int, position: int, selected: list[list[ParsedToken]]
+        idx: int, position: int, selected: list[list[ParsedToken]]
     ) -> list[list[ParsedToken]] | None:
         """Find one complete sequence.
 
         Args:
-            index: The condition index.
+            idx: The condition index.
             position: The next token position.
             selected: The tokens for prior conditions.
 
@@ -293,27 +290,27 @@ def _sequence(
         """
         nonlocal steps
         steps += 1
-        if steps > 100000:
+        if steps > MAX_STEPS:
             raise PackageError("Sequence exceeds the operation limit.")
-        if index == len(rule.sequence):
+        if idx == len(rule.sequence):
             return selected
-        condition = rule.sequence[index]
+        condition = rule.sequence[idx]
         if (
             condition.negate
             and condition.minimum == 1
             and (
                 position == len(tokens)
-                and index == len(rule.sequence) - 1
+                and idx == len(rule.sequence) - 1
                 or position == -1
-                and index == 0
+                and idx == 0
             )
         ):
-            return visit(index + 1, max(position, 0), selected + [[]])
+            return visit(idx + 1, max(position, 0), selected + [[]])
         pending: list[tuple[int, list[ParsedToken]]] = [(position, [])]
         while pending:
             current, group = pending.pop()
             steps += 1
-            if steps > 100000:
+            if steps > MAX_STEPS:
                 raise PackageError("Sequence exceeds the operation limit.")
             if not 0 <= current < len(tokens) or not _accept(
                 condition, tokens[current]
@@ -325,18 +322,15 @@ def _sequence(
             )
             if len(group) >= condition.minimum:
                 for next_position in following:
-                    result = visit(
-                        index + 1, next_position, selected + [group]
-                    )
+                    result = visit(idx + 1, next_position, selected + [group])
                     if result is not None:
                         return result
             if condition.repeat:
                 steps += len(following)
-                if steps > 100000:
+                if steps > MAX_STEPS:
                     raise PackageError("Sequence exceeds the operation limit.")
                 pending.extend(
-                    (next_position, group)
-                    for next_position in reversed(following)
+                    (next_position, group) for next_position in reversed(following)
                 )
         return None
 
@@ -382,10 +376,11 @@ def _sequence(
 
 
 def scan_external(
+    *,
     text: str,
     path: Path,
     config: Config,
-    document: Document,
+    doc: Document,
     rules: tuple[Rule, ...],
 ) -> list[Finding]:
     """Check visible prose with package rules.
@@ -394,7 +389,7 @@ def scan_external(
         text: The Markdown source.
         path: The source path.
         config: The settings for this path.
-        document: The parsed document.
+        doc: The parsed document.
         rules: The configured package rules.
 
     Returns:
@@ -410,7 +405,7 @@ def scan_external(
             continue
         try:
             matches: list[tuple[int, str, list[str | int], str]] = []
-            for prose in _scopes(rule, document):
+            for prose in _scopes(rule, doc):
                 if rule.kind == "sequence":
                     if prose not in sentences:
                         sentences[prose] = PARSER.parse(prose)
@@ -430,15 +425,15 @@ def scan_external(
                 seen.add(offset)
                 findings.append(
                     make_finding(
-                        rule.code,
-                        offset,
-                        text,
-                        path,
-                        context,
-                        _message(rule.message, values),
-                        hint,
+                        code=rule.code,
+                        offset=offset,
+                        text=text,
+                        path=path,
+                        context=context,
+                        message=_message(rule.message, values),
+                        hint=hint,
                     )
                 )
-        except (TimeoutError, IndexError, PackageError) as error:
-            raise PackageError(f"{rule.code}: {error}") from error
+        except (TimeoutError, IndexError, PackageError) as e:
+            raise PackageError(f"{rule.code}: {e}") from e
     return findings

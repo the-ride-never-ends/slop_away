@@ -4,9 +4,9 @@ import re
 from pathlib import Path
 
 from slop_away.config import Config
-from slop_away.findings import Finding, make_finding
-from slop_away.markdown import Document
-from slop_away.text import split_sentences, word_matches
+from slop_away.utils.findings import Finding, make_finding
+from slop_away.utils.markdown import Document
+from slop_away.utils.text import split_sentences, word_matches
 
 FILLER = re.compile(
     r"\bit[\s*_~]+is[\s*_~]+worth[\s*_~]+noting[\s*_~]+that\b"
@@ -22,10 +22,11 @@ HEDGE = re.compile(
 
 
 def scan_verbosity(
+    *,
     text: str,
     path: Path,
     config: Config,
-    document: Document,
+    doc: Document,
     seen: dict[str, Path],
 ) -> list[Finding]:
     """Check the verbosity rules.
@@ -34,7 +35,7 @@ def scan_verbosity(
         text: The Markdown source.
         path: The source path.
         config: The document settings.
-        document: The extracted Markdown text.
+        doc: The extracted Markdown text.
         seen: First paths for sentences from files checked in this run.
 
     Returns:
@@ -43,7 +44,7 @@ def scan_verbosity(
     findings = []
     words = [
         (block.prose, match)
-        for block in document.blocks
+        for block in doc.blocks
         for match in word_matches(block.prose.text)
     ]
     if (
@@ -54,18 +55,18 @@ def scan_verbosity(
         projection, match = words[0]
         findings.append(
             make_finding(
-                "VRB003",
-                projection.offsets[match.start()],
-                text,
-                path,
-                "\n".join(block.prose.text for block in document.blocks),
-                f"Word count {len(words)} is above the budget "
+                code="VRB003",
+                offset=projection.offsets[match.start()],
+                text=text,
+                path=path,
+                context="\n".join(block.prose.text for block in doc.blocks),
+                message=f"Word count {len(words)} is above the budget "
                 f"{config.word_budget}.",
-                "Remove text until the document is within its word budget.",
+                hint="Remove text until the document is within its word budget.",
             )
         )
     local: set[str] = set()
-    for block in document.blocks:
+    for block in doc.blocks:
         for sentence in split_sentences(block.prose):
             for code, pattern, message, hint in (
                 (
@@ -85,13 +86,13 @@ def scan_verbosity(
                     for match in pattern.finditer(sentence.text):
                         findings.append(
                             make_finding(
-                                code,
-                                sentence.offsets[match.start()],
-                                text,
-                                path,
-                                sentence.text,
-                                message,
-                                hint,
+                                code=code,
+                                offset=sentence.offsets[match.start()],
+                                text=text,
+                                path=path,
+                                context=sentence.text,
+                                message=message,
+                                hint=hint,
                             )
                         )
             if len(word_matches(sentence.text)) < 8:
@@ -100,13 +101,13 @@ def scan_verbosity(
             if config.enabled("VRB004") and normalized in local:
                 findings.append(
                     make_finding(
-                        "VRB004",
-                        sentence.offsets[0],
-                        text,
-                        path,
-                        sentence.text,
-                        "Sentence is repeated in this document.",
-                        "Remove the repeated sentence.",
+                        code="VRB004",
+                        offset=sentence.offsets[0],
+                        text=text,
+                        path=path,
+                        context=sentence.text,
+                        message="Sentence is repeated in this document.",
+                        hint="Remove the repeated sentence.",
                     )
                 )
             local.add(normalized)
@@ -114,14 +115,14 @@ def scan_verbosity(
                 if normalized in seen and seen[normalized] != path:
                     findings.append(
                         make_finding(
-                            "VRB005",
-                            sentence.offsets[0],
-                            text,
-                            path,
-                            sentence.text,
-                            f"Sentence is also in "
+                            code="VRB005",
+                            offset=sentence.offsets[0],
+                            text=text,
+                            path=path,
+                            context=sentence.text,
+                            message=f"Sentence is also in "
                             f"{seen[normalized].as_posix()}.",
-                            "Keep one copy of the sentence and use a link.",
+                            hint="Keep one copy of the sentence and use a link.",
                         )
                     )
                 seen.setdefault(normalized, path)

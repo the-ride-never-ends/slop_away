@@ -5,7 +5,7 @@ from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from slop_away import Config, check_files, check_message, check_text
-from slop_away.text import word_matches
+from slop_away.utils.text import word_matches
 from tests.generation.documents import sentences
 
 RULES = {
@@ -85,7 +85,7 @@ def repeated_case(tmp_path, clean_sentences):
 def test_planted_file_repetition(repeated_case, index):
     """GIVEN copied corpus prose WHEN files are checked THEN flag repetition."""
     paths, config, expected = repeated_case(index)
-    findings = check_files(paths, config)
+    findings = check_files(paths=paths, config=config)
     actual = [(item.code, str(item.path), item.line) for item in findings]
     assert actual == expected
 
@@ -116,6 +116,6 @@ def planted_message(request, clean_sentences):
 def test_planted_message_defect(planted_message, index):
     """GIVEN a message defect WHEN checked THEN find only its code and line."""
     text, config, expected = planted_message(index)
-    findings = check_message(text, config)
+    findings = check_message(text=text, config=config)
     actual = [(item.code, item.line) for item in findings]
     assert actual == expected

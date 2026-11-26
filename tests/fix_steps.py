@@ -7,14 +7,13 @@ from slop_away import apply_fixes, check_text
 
 @when(
     parsers.parse(
-        'apply_fixes runs on "{path}" with the text "{text}" '
-        "and unsafe {unsafe}"
+        'apply_fixes runs on "{path}" with the text "{text}" and unsafe {unsafe}'
     ),
     target_fixture="fixed",
 )
 def fix_document(config, path, text, unsafe):
     """GIVEN source text WHEN fixed THEN return the changed source."""
-    return apply_fixes(text, path, config, unsafe == "True")
+    return apply_fixes(text=text, path=path, config=config, unsafe=unsafe == "True")
 
 
 @then(parsers.parse('apply_fixes returns "{expected}"'))
@@ -35,7 +34,7 @@ def check_fixed(config, path, fixed):
 @when("apply_fixes runs again on its own result", target_fixture="second")
 def repeat_fix(config, fixed):
     """GIVEN fixed text WHEN fixed again THEN return the second result."""
-    return apply_fixes(fixed, "docs/guide.md", config)
+    return apply_fixes(text=fixed, path="docs/guide.md", config=config)
 
 
 @then("the second result equals the first result")

@@ -39,6 +39,7 @@ def _line_breaks(text: str) -> tuple[tuple[int, ...], tuple[int, ...]]:
 
 
 def make_finding(
+    *,
     code: str,
     offset: int,
     text: str,
@@ -68,4 +69,12 @@ def make_finding(
     count = bisect_left(starts, offset)
     line = count + 1
     column = offset - (min(ends[count - 1], offset) if count else 0) + 1
-    return Finding(code, path, line, column, message, hint, fingerprint)
+    return Finding(
+        code=code,
+        path=path,
+        line=line,
+        column=column,
+        message=message,
+        hint=hint,
+        fingerprint=fingerprint,
+    )

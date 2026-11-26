@@ -4,15 +4,15 @@ import re
 from dataclasses import replace
 from pathlib import Path
 
+from slop_away.cmds.helpers.external import scan_external
+from slop_away.cmds.helpers.packages import load_rules
+from slop_away.cmds.helpers.rules.injection import scan_injection
+from slop_away.cmds.helpers.rules.parsing import PARSER, is_imperative
+from slop_away.cmds.helpers.rules.verbosity import scan_verbosity
 from slop_away.config import Config
-from slop_away.external import scan_external
-from slop_away.findings import Finding, make_finding
-from slop_away.injection import scan_injection
-from slop_away.markdown import Projection, parse_document
-from slop_away.packages import load_rules
-from slop_away.parsing import PARSER, is_imperative
-from slop_away.text import word_matches
-from slop_away.verbosity import scan_verbosity
+from slop_away.utils.findings import Finding, make_finding
+from slop_away.utils.markdown import Projection, parse_document
+from slop_away.utils.text import word_matches
 
 SCISSORS = "# ------------------------ >8 ------------------------"
 TRAILER = re.compile(r"[A-Za-z0-9][A-Za-z0-9-]*[ \t]*:")
@@ -27,9 +27,9 @@ def _mask(characters: list[str], start: int, end: int) -> None:
         start: The first source offset.
         end: The offset after the range.
     """
-    for index in range(start, end):
-        if characters[index] not in "\r\n":
-            characters[index] = " "
+    for idx in range(start, end):
+        if characters[idx] not in "\r\n":
+            characters[idx] = " "
 
 
 def _parts(text: str) -> tuple[Projection, str, str]:
@@ -89,7 +89,7 @@ def _parts(text: str) -> tuple[Projection, str, str]:
 
 
 def check_message(
-    text: str, config: Config, path: str | Path = ".git/COMMIT_EDITMSG"
+    *, text: str, config: Config, path: str | Path = ".git/COMMIT_EDITMSG"
 ) -> list[Finding]:
     """Check a commit message.
 
@@ -121,10 +121,7 @@ def check_message(
                 "MSG001",
                 subject.offsets[72],
                 subject.text,
-                (
-                    f"Subject has {len(subject.text)} characters; "
-                    "the limit is 72."
-                ),
+                (f"Subject has {len(subject.text)} characters; the limit is 72."),
                 "Use a shorter subject.",
             )
         )
@@ -134,13 +131,10 @@ def check_message(
         if initial_words:
             first = initial_words[0]
             initial = "".join(
-                char.lower() if "A" <= char <= "Z" else char
-                for char in first[0]
+                char.lower() if "A" <= char <= "Z" else char for char in first[0]
             )
             analysis = Projection(
-                subject.text[: first.start()]
-                + initial
-                + subject.text[first.end() :],
+                subject.text[: first.start()] + initial + subject.text[first.end() :],
                 subject.offsets,
             )
         sentences = PARSER.parse(analysis)
@@ -175,9 +169,7 @@ def check_message(
         budget = settings.commit_body_budget
         if len(words) > budget:
             prose, word = words[budget]
-            context = "\n".join(
-                block.prose.text for block in body_document.blocks
-            )
+            context = "\n".join(block.prose.text for block in body_document.blocks)
             problems.append(
                 (
                     "MSG004",
@@ -189,15 +181,27 @@ def check_message(
             )
     for code, offset, context, message, hint in problems:
         findings.append(
-            make_finding(code, offset, text, source, context, message, hint)
+            make_finding(
+                code=code,
+                offset=offset,
+                text=text,
+                path=source,
+                context=context,
+                message=message,
+                hint=hint,
+            )
         )
     native = replace(
         settings,
         select=[code for code in PROSE_CODES if settings.enabled(code)],
     )
-    findings.extend(scan_injection(text, source, native, document))
-    findings.extend(scan_verbosity(text, source, native, document, {}))
-    findings.extend(scan_external(text, source, settings, document, rules))
-    return sorted(
-        findings, key=lambda item: (item.line, item.column, item.code)
+    findings.extend(scan_injection(text=text, path=source, config=native, doc=document))
+    findings.extend(
+        scan_verbosity(text=text, path=source, config=native, doc=document, seen={})
     )
+    findings.extend(
+        scan_external(
+            text=text, path=source, config=settings, doc=document, rules=rules
+        )
+    )
+    return sorted(findings, key=lambda item: (item.line, item.column, item.code))
