@@ -192,6 +192,7 @@ def scan_ste(*, text: str, path: Path, config: Config, doc: Document) -> list[Fi
         for preferred, synonyms in config.glossary.items()
         for synonym in synonyms
     ]
+    PARSER.prepare(block.prose for block in doc.blocks)
     for block in doc.blocks:
         sentences = PARSER.parse(block.prose)
         if config.enabled("STE002") and block.kind != "heading" and len(sentences) > 6:
