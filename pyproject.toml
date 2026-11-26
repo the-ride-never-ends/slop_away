@@ -48,7 +48,7 @@ priority = "explicit"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--strict-config --strict-markers"
+addopts = "--strict-config --strict-markers -n auto"
 markers = [
     "corpus_01: Corpus feature scenario.",
     "corpus_02: Corpus feature scenario.",
