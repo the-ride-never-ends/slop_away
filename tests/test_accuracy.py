@@ -77,3 +77,9 @@ def test_owner_limit_required(missing_limit):
     with pytest.raises(expected) as error:
         compare_rates(actual, policy)
     assert type(error.value) is expected
+
+
+def test_missing_suite_limits():
+    """GIVEN a suite without limits WHEN compared THEN name the cause."""
+    with pytest.raises(ValueError, match="has not set the limits"):
+        compare_rates({}, None)
